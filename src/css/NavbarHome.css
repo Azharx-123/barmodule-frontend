@@ -1,0 +1,87 @@
+.navbar-home {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 3rem 1.5rem;
+  background-color: rgba(255, 255, 255, 0.315);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  z-index: 1;
+}
+
+.art {
+  width: 20vh;
+  height: auto;
+}
+
+.art-left {
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+
+.art-right {
+  position: fixed;
+  top: 0;
+  right: 0;
+}
+
+.navbar-logos {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+}
+
+.navbar-logos img {
+  width: 70px;
+  height: auto;
+}
+
+@media screen and (max-width: 768px) {
+  .navbar-home {
+    flex-direction: column;
+    padding: 1rem;
+    justify-content: center;
+  }
+
+  .art {
+    width: 15vh;
+  }
+
+  .navbar-logos {
+    position: relative; /* Ubah ke relative agar tetap di tengah */
+    left: 0;
+    transform: none;
+    width: 100%;
+    justify-content: center; /* Pastikan konten tetap di tengah */
+    gap: 1rem;
+  }
+
+  .navbar-logos img {
+    width: 50px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .navbar-home {
+    padding: 0.5rem;
+  }
+
+  .art {
+    width: 10vh;
+  }
+
+  .navbar-logos {
+    gap: 0.5rem;
+  }
+
+  .navbar-logos img {
+    width: 40px;
+  }
+}

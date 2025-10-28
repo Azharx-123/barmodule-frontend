@@ -1,0 +1,181 @@
+.brand-carousel-container {
+  --primary-color: #fe3efb;
+  --secondary-color: #350e38;
+  --background-color: #f4f4f4;
+  --text-color: #333;
+  --font-primary: "Darker Grotesque", sans-serif;
+  --font-secondary: "Poppins", sans-serif;
+  
+  width: 100%;
+  overflow: hidden;
+  background-color: var(--background-color);
+  padding: 2rem 0 4rem 0;
+}
+
+.brand-carousel-title {
+  text-align: center;
+  color: transparent;
+  background: linear-gradient( 90deg, var(--secondary-color), var(--primary-color), var(--secondary-color));
+  background-size: 200%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  font-family: var(--font-primary);
+  font-size: 2.5rem;
+  margin-bottom: 2rem;
+  animation: shine 2s infinite linear;
+  position: relative;
+}
+
+.brand-carousel-title::before,
+.brand-carousel-title::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  height: 3px;
+  border-radius: 2px;
+  animation: shimmer 3s infinite;
+}
+
+.brand-carousel-title::before {
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  background: linear-gradient(90deg, 
+    transparent,
+    var(--primary-color),
+    var(--secondary-color),
+    transparent
+  );
+  animation: expand 3s ease-in-out infinite;
+}
+
+.brand-carousel-title::after {
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  background: var(--primary-color);
+  filter: blur(4px);
+  opacity: 0.6;
+  animation: glow 3s ease-in-out infinite;
+}
+
+@keyframes expand {
+  0% {
+    width: 0;
+    opacity: 0;
+  }
+  50% {
+    width: 80px;
+    opacity: 1;
+  }
+  100% {
+    width: 0;
+    opacity: 0;
+  }
+}
+
+@keyframes glow {
+  0% {
+    opacity: 0.2;
+    width: 0;
+  }
+  50% {
+    opacity: 0.6;
+    width: 40px;
+  }
+  100% {
+    opacity: 0.2;
+    width: 0;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -100% 0;
+  }
+  100% {
+    background-position: 100% 0;
+  }
+}
+
+.brand-carousel-wrapper {
+  width: 100%;
+  position: relative;
+}
+
+.brand-track {
+  display: flex;
+  animation: scroll 40s linear infinite;
+  width: fit-content;
+}
+
+.brand-item {
+  flex: 0 0 auto;
+  padding: 0 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s ease;
+}
+
+.brand-logo {
+  max-width: 150px;
+  height: auto;
+  filter: grayscale(100%);
+  opacity: 0.7;
+  transition: all 0.3s ease;
+}
+
+.brand-item:hover .brand-logo {
+  filter: grayscale(0%);
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.brand-carousel-wrapper::before,
+.brand-carousel-wrapper::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  width: 100px;
+  height: 100%;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.brand-carousel-wrapper::before {
+  left: 0;
+  background: linear-gradient(90deg, var(--background-color) 0%, transparent 100%);
+}
+
+.brand-carousel-wrapper::after {
+  right: 0;
+  background: linear-gradient(-90deg, var(--background-color) 0%, transparent 100%);
+}
+
+.brand-carousel-wrapper:hover .brand-track {
+  animation-play-state: paused;
+}
+
+@media (max-width: 768px) {
+  .brand-carousel-title {
+    font-size: 2rem;
+  }
+  
+  .brand-item {
+    padding: 0 1rem;
+  }
+  
+  .brand-logo {
+    max-width: 100px;
+  }
+}

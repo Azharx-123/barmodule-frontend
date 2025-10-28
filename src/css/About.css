@@ -1,0 +1,96 @@
+.about-container {
+  height: fit-content;
+  background-color: #fcfbf7;
+  background-image: url("../assets/images/image-about.jpeg");
+  background-size: cover;
+  background-position: center;
+  display: flex;
+  justify-content: center;
+  padding: 120px 20px;
+}
+
+.about-card {
+  background-color: #fff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 15px;
+  padding: 40px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 50px;
+}
+
+.image-about {
+  height: 300px;
+  width: 300px;
+  border-radius: 15px;
+  overflow: hidden;
+}
+
+.image-about:hover {
+  transform: scale(1.1);
+  transition: all 0.5s ease;
+}
+.image-about img {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+}
+
+.about-title-container {
+  text-align: left;
+}
+
+.about-title h1 {
+  font-family: "Darker Grotesque", sans-serif;
+  font-size: 40px;
+  line-height: 50px;
+  font-weight: 900;
+  color: #34364a;
+  margin-bottom: 20px;
+   margin-top: 0px;
+}
+
+.about-title span {
+  color: #ff33fc;
+}
+
+.about-desc {
+  font-family: "Poppins", sans-serif;
+  color: #17171a;
+  text-align: left;
+  line-height: 1.6;
+}
+.about-desc p {
+  font-size: 15px;
+  line-height: 30px;
+  margin-bottom: 10px;
+  margin: 10px 0;
+}
+.about-desc strong {
+  color: #ff33fc;
+}
+
+@media screen and (max-width: 800px) {
+  .about-card {
+    flex-direction: column;
+    text-align: center;
+    padding: 20px;
+  }
+
+  .image-about {
+    margin-bottom: 20px;
+    height: 200px;
+    width: 200px;
+  }
+
+  .about-title h1 {
+    font-size: 30px;
+    line-height: 40px;
+    text-align: center;
+  }
+
+  .about-desc {
+    text-align: center;
+  }
+}

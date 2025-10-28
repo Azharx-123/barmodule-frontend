@@ -1,0 +1,101 @@
+.our-service-container {
+  background-color: #ffffff;
+  padding: 50px 0 160px;
+}
+
+.our-service-title {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.our-service-title .subtitle {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  color: #727374;
+  display: block;
+  margin-bottom: 10px;
+}
+
+.our-service-title h1 {
+  font-family: 'Darker Grotesque', sans-serif;
+  font-weight: 900;
+  font-size: 3.75rem;
+  color: #34364A;
+  margin: 0;
+}
+
+.our-service-title .highlight {
+  color: #FF33FC;
+}
+
+.service-container {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 30px;
+  padding: 0 40px;
+}
+
+.service-card {
+  width: 250px;
+  background-color: #fcfbf7;
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.service-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  background-color: white;
+}
+
+.service-card a {
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.service-card-image {
+  margin-top: 3rem;
+  margin-bottom: 15px;
+}
+
+.service-card-image img {
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+}
+
+.service-card-title {
+  font-family: 'Darker Grotesque', sans-serif;
+  font-size: 1.5625rem;
+  font-weight: 600;
+  color: #3d3e40;
+  margin: 0 0 10px;
+}
+
+.service-card-desc {
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.75rem;
+  color: #848687;
+  margin: 0;
+  flex-grow: 1;
+  margin-bottom: 2rem;
+}
+
+@media screen and (max-width: 800px) {
+  .service-container {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .service-card {
+    width: 100%;
+    max-width: 300px;
+    margin-bottom: 30px;
+  }
+}

@@ -1,0 +1,217 @@
+.main-section-container {
+  display: flex;
+  justify-content: space-evenly;
+  height: fit-content;
+  width: 100%;
+  background-color: #fcfbf7;
+  padding: 30px 0; /* Added side padding for better responsiveness */
+}
+
+.text-main-container {
+  text-align: left;
+}
+
+.main-title {
+  font-family: "Darker Grotesque";
+  font-weight: 900;
+  font-size: 60px;
+  max-width: 500px;
+  line-height: 70px;
+}
+
+.main-title span {
+  background: linear-gradient(90deg, #000000, #fe3efb, #000000);
+  background-size: 200%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: shine 2s infinite linear;
+}
+
+.main-subtitle {
+  font-family: "Poppins", sans-serif;
+  color: #8b8888;
+  margin-top: 30px;
+  font-size: 18px;
+  max-width: 450px; /* Increased the width for better readability */
+}
+
+.button-container {
+  display: flex;
+  align-items: center;
+  margin-top: 50px;
+}
+
+.button-main {
+  background-color: #fe3efb;
+  border: none;
+  color: white;
+  padding: 15px 35px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 5px;
+  font-family: "Poppins", sans-serif;
+  font-weight: 600;
+  transition: background-color 0.3s ease; /* Added smoother transition */
+}
+
+@keyframes borderGlow2 {
+  0%, 100% {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--primary-color), 0 0 30px var(--primary-color);
+  }
+  50% {
+    border-color: var(--secondary-color);
+    box-shadow: 0 0 10px var(--secondary-color), 0 0 20px var(--secondary-color), 0 0 30px var(--secondary-color);
+  }
+}
+
+.button-main:hover {
+  animation: borderGlow2 1.5s infinite ease-in-out;
+  color: #fe3efb;
+  background-color: #ffffff;
+}
+.button-main:active {
+  animation: shine 1.5s infinite ease-in-out;
+  border-color: transparent;
+  color: #ffffff;
+  background-color: black;
+  background-size: 200%;
+}
+
+.play-tonton {
+  filter: drop-shadow(0 0 1.4rem rgba(203, 200, 200, 0.8));
+}
+
+.play-tonton:hover {
+  filter: drop-shadow(0 0 1.4rem rgba(167, 164, 164, 0.8));
+}
+
+.play-tonton .circle {
+  width: 50px;
+  height: 50px;
+  border-radius: 100%;
+  background-color: #ecf1f3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 50px;
+  margin-right: 5px;
+}
+
+.play-tonton .circle svg {
+  color: #fe3efb;
+}
+
+@keyframes zoomOut {
+  0% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(1.2);
+  }
+}
+
+.play-tonton .circle:hover svg {
+  color: #fe3efb;
+  animation: zoomOut 0.5s forwards;
+}
+
+.tonton {
+  font-family: "Poppins", sans-serif;
+  font-weight: 900;
+  font-size: 16px;
+  color: #3d3e40;
+  margin-left: 10px;
+}
+
+@media screen and (max-width: 1050px) {
+  .image-main-container {
+    display: none;
+  }
+}
+
+@media screen and (max-width: 500px) {
+  .text-main-container {
+    margin-left: 20px;
+  }
+
+  .main-title {
+    font-size: 50px;
+    line-height: 50px;
+  }
+
+  .main-subtitle {
+    font-size: 14px;
+    max-width: 250px; /* Slightly increased for better layout */
+  }
+
+  .button-main {
+    padding: 10px 15px;
+    margin: 1px 2px;
+    margin-bottom: 20px;
+  }
+
+  .play-tonton .circle {
+    margin-left: 0px;
+  }
+
+  .button-container {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+.button-tonton {
+  display: flex;
+  align-items: center;
+}
+
+/* Modal Styles */
+.video-modal-pengenalan {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.video-modal-content-pengenalan {
+  position: relative;
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  text-align: center;
+}
+
+.close-button-pengenalan {
+  position: absolute;
+  top: 10px;
+  right: 16px;
+  font-size: 1.5rem;
+  background-color: #ffffff;
+  border: none;
+  width: 40px; /* Set a fixed width */
+  height: 40px; /* Set a fixed height */
+  border-radius: 50%; /* Make it a circle */
+  display: flex; /* Use flexbox */
+  justify-content: center; /* Center horizontally */
+  align-items: center; /* Center vertically */
+  color: #ff33fc;
+  cursor: pointer;
+}
+
+.close-button-pengenalan:hover {
+  color: #ffffff;
+    background-color: #ff33fc;
+}
+

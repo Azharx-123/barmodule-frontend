@@ -1,0 +1,203 @@
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes borderPulse {
+  0% {
+    border-color: #e410cb;
+  }
+  50% {
+    border-color: #000000;
+  }
+  100% {
+    border-color: #e410cb;
+  }
+}
+
+.contact-container {
+  background-color: #fcfbf7;
+  padding: 100px 0;
+}
+
+.contact-title {
+  text-align: center;
+  margin-bottom: 50px;
+}
+
+.contact-title h3 {
+  font-family: "Darker Grotesque", sans-serif;
+  font-weight: 900;
+  font-size: 30px;
+  line-height: 1.2;
+  color: rgb(223, 58, 196);
+}
+
+.contact-title h1 {
+  font-family: "Poppins", sans-serif;
+  font-weight: 900;
+  font-size: 50px;
+  line-height: 1.2;
+  color: #34364A;
+  margin-top: 10px;
+}
+
+.animate-in {
+  animation: fadeInUp 0.6s ease-out forwards;
+  opacity: 0;
+}
+
+.contact-title h3.animate-in {
+  animation-delay: 0.2s;
+}
+
+.contact-title h1.animate-in {
+  animation-delay: 0.4s;
+}
+
+.contact-form {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.contact-form-container {
+  width: 500px;
+  background-color: white;
+  border-radius: 20px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  padding: 50px;
+  animation-delay: 0.6s;
+}
+
+.form__group {
+  position: relative;
+  margin-bottom: 30px;
+  transition: transform 0.3s ease;
+}
+
+.form__group.focused {
+  transform: translateY(-5px);
+}
+
+.form__label {
+  display: block;
+  font-family: "Poppins", sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+  color: #4a0946;
+  margin-bottom: 5px;
+  transition: color 0.3s ease;
+}
+
+.form__group.focused .form__label {
+  background: linear-gradient(90deg, #fe3efb, #000000, #fe3efb);
+  background-size: 200%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: shine 4s infinite linear;
+}
+
+.form__field {
+  width: 100%;
+  padding: 10px 0;
+  font-size: 1rem;
+  border: none;
+  border-bottom: 2px solid #e410cb;
+  background-color: transparent;
+  transition: border-color 0.3s ease;
+  resize: none; /* Mencegah resize manual */
+  box-sizing: border-box; /* Memastikan padding termasuk dalam width */
+}
+
+.form__field:focus {
+  outline: none;
+  border-image: linear-gradient(90deg, #e410cb, #000000, #e410cb) 1;
+  border-image-slice: 1;
+}
+
+textarea.form__field {
+  resize: none;
+  min-height: 100px;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: auto; /* Menambahkan scrollbar jika konten melebihi height */
+}
+
+.submit-button {
+  width: 100%;
+  padding: 15px;
+  border: none;
+  border-radius: 10px;
+  background-color: rgb(223, 58, 196);
+  color: white;
+  font-family: "Poppins", sans-serif;
+  font-weight: 900;
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.submit-button:hover {
+  background-color: rgb(199, 52, 175) !important;
+  transform: translateY(-3px) !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.submit-button:active {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.submit-button::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  background: rgba(255, 255, 255, 0.5);
+  opacity: 0;
+  border-radius: 100%;
+  transform: scale(1, 1) translate(-50%);
+  transform-origin: 50% 50%;
+}
+
+.submit-button:focus:not(:active)::after {
+  animation: ripple 1s ease-out;
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(0, 0);
+    opacity: 1;
+  }
+  20% {
+    transform: scale(25, 25);
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(40, 40);
+  }
+}
+
+@media (max-width: 600px) {
+  .contact-form-container {
+    width: 90%;
+    padding: 30px;
+  }
+  
+  .contact-title h1 {
+    font-size: 40px;
+  }
+}
