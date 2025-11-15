@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
@@ -14,9 +14,9 @@ const Profile = () => {
 
   useEffect(() => {
     fetchProfile();
-  }, []);
+  }, [fetchProfile]);
 
-  const fetchProfile = async () => {
+  const fetchProfile = useCallback(async () => {
     try {
       const response = await api.get("/users/profile");
       setUser(response.data);
@@ -29,7 +29,7 @@ const Profile = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [navigate]);
 
   const handleAvatarUploadSuccess = (newAvatarUrl) => {
     setUser({ ...user, avatar: newAvatarUrl });

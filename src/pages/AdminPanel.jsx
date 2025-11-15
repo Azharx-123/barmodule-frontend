@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import "../css/AdminPanel.css";
 import ImageUpload from "../components/ImageUpload";
 
@@ -40,9 +40,9 @@ const AdminPanel = () => {
       fetchCourses();
       fetchContacts();
     }
-  }, [isLoggedIn, token]);
+  }, [isLoggedIn, token, fetchStats, fetchCourses, fetchContacts]);
 
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     try {
       const response = await fetch(`${API_URL}/admin/stats`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -52,9 +52,9 @@ const AdminPanel = () => {
     } catch (error) {
       console.error("Error:", error);
     }
-  };
+  }, [token]);
 
-  const fetchCourses = async () => {
+  const fetchCourses = useCallback(async () => {
     try {
       const response = await fetch(`${API_URL}/courses`);
       const data = await response.json();
@@ -62,9 +62,9 @@ const AdminPanel = () => {
     } catch (error) {
       console.error("Error:", error);
     }
-  };
+  }, []);
 
-  const fetchContacts = async () => {
+  const fetchContacts = useCallback(async () => {
     try {
       const response = await fetch(`${API_URL}/contact`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -74,7 +74,7 @@ const AdminPanel = () => {
     } catch (error) {
       console.error("Error:", error);
     }
-  };
+  }, [token]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
