@@ -1,0 +1,538 @@
+/* =========================================================
+   ABOUT PAGE — Redesign
+   Palette: #ff33fc (pink) · #34364a (dark) · #fcfbf7 (cream)
+   Fonts  : Darker Grotesque (display) · Poppins (body)
+   ========================================================= */
+
+/* ── RESETS & SHARED ──────────────────────────────────────── */
+.ab-hero,
+.ab-section {
+  font-family: "Poppins", sans-serif;
+  box-sizing: border-box;
+}
+
+.ab-container {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* ── HERO ─────────────────────────────────────────────────── */
+.ab-hero {
+  position: relative;
+  background-image: url("../assets/images/image-about.jpeg");
+  background-size: cover;
+  background-position: center;
+  padding: 160px 24px 110px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  text-align: center;
+}
+
+.ab-hero__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    140deg,
+    rgba(52, 54, 74, 0.90) 0%,
+    rgba(255, 51, 252, 0.28) 100%
+  );
+}
+
+.ab-hero__content {
+  position: relative;
+  z-index: 2;
+  max-width: 660px;
+}
+
+.ab-hero__content h1 {
+  font-family: "Darker Grotesque", sans-serif;
+  font-size: 58px;
+  font-weight: 900;
+  color: #fff;
+  line-height: 1.08;
+  margin: 16px 0 22px;
+}
+
+.ab-hero__content h1 span {
+  color: #ff33fc;
+}
+
+.ab-hero__content p {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.82);
+  line-height: 1.75;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+/* Wave divider at hero bottom */
+.ab-hero__wave {
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 56px;
+  background: #fcfbf7;
+  clip-path: ellipse(58% 100% at 50% 100%);
+  z-index: 3;
+}
+
+/* ── EYEBROW / TAG ───────────────────────────────────────── */
+.ab-eyebrow {
+  display: inline-block;
+  background: rgb(255, 255, 255);
+  border: 1px solid rgba(255, 51, 252, 0.45);
+  color: #ff33fc;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  padding: 6px 18px;
+  border-radius: 50px;
+}
+
+.ab-tag {
+  display: inline-block;
+  background: rgba(255, 51, 252, 0.10);
+  color: #ff33fc;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  padding: 5px 15px;
+  border-radius: 50px;
+  margin-bottom: 12px;
+}
+
+.ab-tag--dark {
+  background: rgba(255, 51, 252, 0.18);
+  border: 1px solid rgba(255, 51, 252, 0.35);
+}
+
+/* ── SECTIONS ────────────────────────────────────────────── */
+.ab-section {
+  padding: 90px 0;
+  background-color: #fcfbf7;
+}
+
+.ab-section--alt {
+  background-color: #fff;
+}
+
+.ab-section--dark {
+  background-color: #34364a;
+}
+
+/* Section head */
+.ab-section__head {
+  text-align: center;
+  margin-bottom: 52px;
+}
+
+.ab-section__head h2 {
+  font-family: "Darker Grotesque", sans-serif;
+  font-size: 40px;
+  font-weight: 900;
+  color: #34364a;
+  margin: 0 0 14px;
+  line-height: 1.1;
+}
+
+.ab-section__head h2 span {
+  color: #ff33fc;
+}
+
+.ab-head--light {
+  color: #fff !important;
+}
+
+.ab-section__sub {
+  font-size: 15px;
+  color: #777;
+  max-width: 520px;
+  margin: 0 auto;
+  line-height: 1.7;
+}
+
+.ab-sub--light {
+  color: rgba(255, 255, 255, 0.65) !important;
+}
+
+/* ── WEBSITE INFO CARDS ──────────────────────────────────── */
+.ab-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+.ab-card {
+  background: #fff;
+  border-radius: 18px;
+  padding: 34px 28px;
+  box-shadow: 0 4px 20px rgba(52, 54, 74, 0.07);
+}
+
+.ab-card--hover {
+  border-top: 3px solid transparent;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.ab-card--hover:hover {
+  transform: translateY(-7px);
+  box-shadow: 0 14px 32px rgba(255, 51, 252, 0.14);
+  border-top-color: #ff33fc;
+}
+
+.ab-card__icon {
+  font-size: 38px;
+  margin-bottom: 18px;
+}
+
+.ab-card h3 {
+  font-family: "Darker Grotesque", sans-serif;
+  font-size: 22px;
+  font-weight: 900;
+  color: #34364a;
+  margin: 0 0 12px;
+}
+
+.ab-card p {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.75;
+  margin: 0;
+}
+
+/* ── SPLIT LAYOUT (Sekolah & lainnya) ───────────────────── */
+.ab-split {
+  display: flex;
+  align-items: center;
+  gap: 64px;
+}
+
+/* School visual box */
+.ab-split__visual {
+  flex-shrink: 0;
+}
+
+.ab-school-thumb {
+  width: 280px;
+  height: 300px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #f5e6ff 0%, #ffe0fb 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 90px;
+  box-shadow: 0 10px 36px rgba(255, 51, 252, 0.18);
+}
+
+.ab-split__visual img {
+  width: 280px;
+  height: 300px;
+  object-fit: cover;
+  border-radius: 20px;
+  box-shadow: 0 10px 36px rgba(255, 51, 252, 0.18);
+}
+
+/* School info text */
+.ab-split__info h2 {
+  font-family: "Darker Grotesque", sans-serif;
+  font-size: 38px;
+  font-weight: 900;
+  color: #34364a;
+  margin: 10px 0 28px;
+  line-height: 1.1;
+}
+
+.ab-split__info h2 span {
+  color: #ff33fc;
+}
+
+/* ── DETAIL LIST ─────────────────────────────────────────── */
+.ab-detail-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.ab-detail {
+  display: flex;
+  align-items: flex-start;
+  gap: 18px;
+  padding: 13px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.ab-detail:last-child {
+  border-bottom: none;
+}
+
+.ab-detail__label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #ff33fc;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  min-width: 130px;
+  flex-shrink: 0;
+  padding-top: 2px;
+  text-align: left;
+}
+
+.ab-detail__value {
+  font-size: 14px;
+  font-weight: 500;
+  color: #34364a;
+  line-height: 1.5;
+}
+
+/* ── SUBJECT CARD ────────────────────────────────────────── */
+.ab-subject {
+  background: #fff;
+  border-radius: 20px;
+  padding: 42px 44px;
+  box-shadow: 0 4px 24px rgba(52, 54, 74, 0.07);
+  border-left: 4px solid #ff33fc;
+}
+
+.ab-subject__lead {
+  margin-bottom: 32px;
+}
+
+.ab-subject__lead h3 {
+  font-family: "Darker Grotesque", sans-serif;
+  font-size: 28px;
+  font-weight: 900;
+  color: #34364a;
+  margin: 0 0 12px;
+}
+
+.ab-subject__lead p {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.75;
+  max-width: 560px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.ab-subject__grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.ab-meta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #fcfbf7;
+  border-radius: 12px;
+  padding: 16px 20px;
+}
+
+.ab-meta__ico {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.ab-meta__label {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  color: #ff33fc;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 4px;
+}
+
+.ab-meta__val {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #34364a;
+}
+
+/* ── DEVELOPER CARD ──────────────────────────────────────── */
+.ab-dev {
+  display: flex;
+  align-items: center;
+  gap: 60px;
+  background: #fcfbf7;
+  border-radius: 22px;
+  padding: 50px;
+  box-shadow: 0 4px 24px rgba(52, 54, 74, 0.06);
+}
+
+.ab-dev__photo {
+  flex-shrink: 0;
+  width: 220px;
+  height: 260px;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 3px solid #ff33fc;
+  box-shadow: 0 10px 30px rgba(255, 51, 252, 0.22);
+}
+
+.ab-dev__photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.ab-dev__photo:hover img {
+  transform: scale(1.06);
+}
+
+.ab-dev__heading {
+  margin-bottom: 24px;
+}
+
+.ab-dev__heading h3 {
+  font-family: "Darker Grotesque", sans-serif;
+  font-size: 30px;
+  font-weight: 900;
+  color: #34364a;
+  margin: 0 0 10px;
+}
+
+.ab-dev__badge {
+  display: inline-block;
+  background: rgba(255, 51, 252, 0.12);
+  color: #ff33fc;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 5px 15px;
+  border-radius: 50px;
+  letter-spacing: 0.5px;
+}
+
+/* ── REFERENCES ──────────────────────────────────────────── */
+.ab-refs {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ab-ref {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  border-radius: 14px;
+  padding: 22px 28px;
+  transition: background 0.28s ease, border-color 0.28s ease;
+}
+
+.ab-ref:hover {
+  background: rgba(255, 51, 252, 0.08);
+  border-color: rgba(255, 51, 252, 0.28);
+}
+
+.ab-ref__num {
+  font-family: "Darker Grotesque", sans-serif;
+  font-size: 26px;
+  font-weight: 900;
+  color: #ff33fc;
+  flex-shrink: 0;
+  line-height: 1;
+  min-width: 34px;
+  padding-top: 2px;
+}
+
+.ab-ref p {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.78);
+  line-height: 1.75;
+  margin: 0;
+}
+
+.ab-ref p em {
+  color: #ff99fc;
+  font-style: italic;
+}
+
+/* ── RESPONSIVE ──────────────────────────────────────────── */
+@media screen and (max-width: 860px) {
+  .ab-hero__content h1 {
+    font-size: 38px;
+  }
+
+  .ab-section {
+    padding: 64px 0;
+  }
+
+  .ab-section__head h2 {
+    font-size: 30px;
+  }
+
+  /* Cards: vertical stack */
+  .ab-cards {
+    grid-template-columns: 1fr;
+  }
+
+  /* Split: vertical */
+  .ab-split {
+    flex-direction: column;
+    gap: 32px;
+    text-align: center;
+  }
+
+  .ab-school-thumb,
+  .ab-split__visual img {
+    width: 200px;
+    height: 220px;
+    margin: 0 auto;
+  }
+
+  .ab-detail {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .ab-detail__label {
+    min-width: unset;
+  }
+
+  /* Subject grid: single col */
+  .ab-subject {
+    padding: 28px 24px;
+  }
+
+  .ab-subject__grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Dev: vertical */
+  .ab-dev {
+    flex-direction: column;
+    padding: 32px 24px;
+    gap: 28px;
+    text-align: center;
+  }
+
+  .ab-dev__heading {
+    text-align: center;
+  }
+
+  .ab-ref {
+    padding: 18px 20px;
+    gap: 16px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .ab-hero__content h1 {
+    font-size: 30px;
+  }
+
+  .ab-section__head h2 {
+    font-size: 26px;
+  }
+}

@@ -1,0 +1,247 @@
+:root {
+  --primary-color: #ff33fc;
+  --secondary-color: #34364a;
+  --background-color: #fcfbf7;
+  --text-light-color: #7b7b80;
+  --font-title: "Darker Grotesque", sans-serif;
+  --font-body: "Poppins", sans-serif;
+}
+
+.explore-container {
+  background-color: var(--background-color);
+  padding: 100px 5%;
+}
+
+.explore-title {
+  font-family: var(--font-title);
+  font-weight: 900;
+  font-size: 60px;
+  line-height: 50px;
+  color: var(--secondary-color);
+  text-align: center;
+  margin-bottom: 50px;
+}
+
+.explore-title .highlight {
+  color: var(--primary-color);
+}
+
+.card-container-materi {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.card-materi {
+  background-color: white;
+  border-radius: 20px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  width: calc(25% - 15px);
+  min-width: 260px;
+  max-width: 300px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card-materi:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.image-container {
+  height: 180px;
+  overflow: hidden;
+  padding: 20px;
+}
+
+.image-container img {
+  width: 100%;
+  height: 100%;
+  border-radius: 5%;
+  object-fit: cover;
+}
+
+.title-text-card {
+  padding: 0 20px 20px 20px;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.title-text-card h3 {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--primary-color);
+  margin: 0 0 10px;
+  text-align: center;
+  height: 54px;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.title-text-card p {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: 14px;
+  color: var(--text-light-color);
+  flex-grow: 1;
+  margin-bottom: 15px;
+}
+
+.bottom-text {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+}
+
+.play-button-explore .circle-explore {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.3s;
+  cursor: pointer;
+}
+
+.play-button-explore .circle-explore svg {
+  color: #ff33fc;
+  transition: color 0.3s;
+}
+
+.play-button-explore .circle-explore:hover {
+  background-color: #ff33fc;
+}
+
+.play-button-explore .circle-explore:hover svg {
+  color: white;
+}
+
+/* Modal styles */
+.video-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.video-content {
+  position: relative;
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  text-align: center;
+}
+
+.close-button {
+  position: absolute;
+  top: 10px;
+  right: 16px;
+  font-size: 1.5rem;
+  background-color: #ffffff;
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #ff33fc;
+  cursor: pointer;
+}
+
+.close-button:hover {
+  color: #ffffff;
+  background-color: #ff33fc;
+}
+
+/* Responsive Breakpoints */
+@media screen and (max-width: 1200px) {
+  .card-materi {
+    width: calc(33.33% - 13.33px);
+    min-width: 250px;
+    max-width: 290px;
+  }
+  
+  .image-container {
+    height: 170px;
+  }
+}
+
+@media screen and (max-width: 900px) {
+  .card-materi {
+    width: calc(50% - 15px);
+    min-width: 240px;
+    max-width: 280px;
+  }
+  
+  .image-container {
+    height: 160px;
+  }
+  
+  .title-text-card h3 {
+    font-size: 16px;
+    height: 48px;
+  }
+}
+
+@media screen and (max-width: 600px) {
+  .explore-container {
+    padding: 30px 15px;
+  }
+  
+  .explore-title {
+    font-size: 40px;
+    line-height: 40px;
+    margin-bottom: 30px;
+  }
+  
+  .card-materi {
+    width: 100%;
+    min-width: 230px;
+    max-width: 270px;
+  }
+  
+  .image-container {
+    height: 150px;
+  }
+  
+  .title-text-card {
+    padding: 0 15px 15px 15px;
+  }
+  
+  .title-text-card h3 {
+    font-size: 15px;
+    height: 45px;
+  }
+  
+  .title-text-card p {
+    font-size: 13px;
+  }
+  
+  .bottom-text {
+    padding: 0 15px;
+  }
+}

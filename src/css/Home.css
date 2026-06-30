@@ -1,0 +1,161 @@
+.home-component {
+  --primary-color: #fe3efb;
+  --secondary-color: #ffffff;
+  --background-color: #000000;
+  --gradient-bg: linear-gradient(
+    rgba(255, 255, 255, 0.49),
+    rgba(29, 14, 27, 0.593),
+    rgba(255, 0, 230, 0.434)
+  );
+  --text-gradient: linear-gradient(
+    90deg,
+    var(--secondary-color),
+    var(--primary-color),
+    var(--secondary-color)
+  );
+}
+
+@keyframes shine {
+  0% {
+    background-position: 0%;
+  }
+  100% {
+    background-position: 200%;
+  }
+}
+
+@keyframes move {
+  0% {
+    background-position: 0% 0%;
+  }
+  100% {
+    background-position: 0% -200%;
+  }
+}
+
+@keyframes borderGlow {
+  0%,
+  100% {
+    border-color: var(--secondary-color);
+    box-shadow: 0 0 10px var(--secondary-color), 0 0 20px var(--secondary-color),
+      0 0 30px var(--secondary-color);
+  }
+  50% {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--primary-color),
+      0 0 30px var(--primary-color);
+  }
+}
+
+.welcome-section {
+  position: relative;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+}
+
+.welcome-slide {
+  height: 100vh;
+  pointer-events: none; /* Menonaktifkan interaksi mouse dengan slide */
+}
+
+.welcome-slide img {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+}
+
+.welcome-content {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  max-width: 600px;
+  text-align: center;
+  padding: 20px;
+  background-color: rgba(0, 0, 0, 0.7);
+  border-radius: 10px;
+  z-index: 10;
+}
+
+.welcome-title {
+  font-size: clamp(28px, 5vw, 50px);
+  font-family: "Darker Grotesque", sans-serif;
+  font-weight: 900;
+  margin-top: 0;
+  margin-bottom: 20px;
+  color: var(--secondary-color);
+}
+
+.welcome-title .highlight {
+  color: transparent;
+  background: linear-gradient(
+    to bottom,
+    var(--primary-color) 50%,
+    var(--secondary-color) 50%
+  );
+  background-size: 100% 200%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  animation: move 2s infinite;
+}
+
+.welcome-description {
+  font-size: clamp(14px, 3vw, 20px);
+  font-weight: bold;
+  background: var(--text-gradient);
+  background-size: 200%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: shine 2s infinite linear;
+  margin-bottom: 30px;
+}
+
+.welcome-button {
+  background-color: var(--primary-color);
+  color: var(--secondary-color);
+  border: none;
+  padding: clamp(10px, 2vw, 15px) clamp(20px, 4vw, 35px);
+  font-size: clamp(14px, 2vw, 18px);
+  border-radius: 25px;
+  font-family: "Poppins", sans-serif;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 20px;
+}
+
+.welcome-button:hover {
+  background-color: var(--secondary-color);
+  color: var(--primary-color);
+  box-shadow: 0 0 15px var(--primary-color);
+}
+
+.welcome-button:active {
+  transform: scale(0.95);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .welcome-content {
+    width: 95%;
+    padding: 15px;
+  }
+
+  .welcome-title {
+    font-size: clamp(24px, 6vw, 36px);
+  }
+
+  .welcome-description {
+    font-size: clamp(12px, 3vw, 16px);
+  }
+
+  .welcome-button {
+    padding: clamp(8px, 2vw, 12px) clamp(16px, 4vw, 25px);
+    font-size: clamp(12px, 2vw, 16px);
+  }
+}
