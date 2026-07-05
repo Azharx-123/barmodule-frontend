@@ -13,7 +13,7 @@ import "../css/Navbar.css";
 const searchData = [
   {
     category: "About",
-    keywords: ["Visi", "Misi", "Sejarah", "Tujuan Pembelajaran", "Kontak"],
+    keywords: ["Visi", "Misi", "Sejarah", "Tujuan Pembelajaran"],
     path: "/about",
   },
 ];
@@ -294,7 +294,7 @@ useEffect(() => {
               <div
                 style={{ display: "flex", alignItems: "center", gap: "10px" }}
               >
-                {userRole === "admin" && (
+                {(userRole === "admin" || userRole === "teacher") && (
                   <Link
                     to={isAtAdmin ? "/" : "/admin"}
                     className="admin-toggle-btn"

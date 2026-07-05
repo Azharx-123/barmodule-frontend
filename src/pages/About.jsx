@@ -84,13 +84,11 @@ function About() {
       <section className="ab-section ab-section--alt" id="info-sekolah">
         <div className="ab-container">
           <div className="ab-split" data-aos="fade-up">
-            {/* Ganti div di bawah dengan <img src={GambarSekolah} ... /> jika tersedia */}
             <div className="ab-split__visual" data-aos="fade-right">
               <div className="ab-school-thumb">
                 <span>🏫</span>
               </div>
             </div>
-
             <div
               className="ab-split__info"
               data-aos="fade-left"
@@ -104,18 +102,21 @@ function About() {
                 <div className="ab-detail">
                   <span className="ab-detail__label">Nama Sekolah</span>
                   <span className="ab-detail__value">
-                    SMK Negeri [Nama Sekolah]
+                    SMK Negeri 7 Tangerang Selatan
                   </span>
                 </div>
                 <div className="ab-detail">
                   <span className="ab-detail__label">Alamat</span>
                   <span className="ab-detail__value">
-                    Jl. [Alamat Sekolah], [Kota]
+                    Jl. Cempaka 3 No.2, RT.2/RW.3, Rengas, Kec. Ciputat Tim.,
+                    Kota Tangerang Selatan, Banten 15444
                   </span>
                 </div>
                 <div className="ab-detail">
                   <span className="ab-detail__label">Jurusan</span>
-                  <span className="ab-detail__value">Tata Kecantikan</span>
+                  <span className="ab-detail__value">
+                    Kecantikan Kulit & Rambur
+                  </span>
                 </div>
                 <div className="ab-detail">
                   <span className="ab-detail__label">Akreditasi</span>
@@ -123,60 +124,7 @@ function About() {
                 </div>
                 <div className="ab-detail">
                   <span className="ab-detail__label">Nomor Telepon</span>
-                  <span className="ab-detail__value">(021) XXX-XXXX</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── INFO MATA PELAJARAN ──────────────────── */}
-      <section className="ab-section" id="info-mapel">
-        <div className="ab-container">
-          <div className="ab-section__head" data-aos="fade-up">
-            <span className="ab-tag">Kurikulum</span>
-            <h2>
-              Informasi <span>Mata Pelajaran</span>
-            </h2>
-          </div>
-
-          <div className="ab-subject" data-aos="fade-up" data-aos-delay="80">
-            <div className="ab-subject__lead">
-              <h3>Tata Rias</h3>
-              <p>
-                Mata pelajaran yang mempelajari teknik dan seni merias wajah
-                serta perawatan kecantikan secara komprehensif sesuai standar
-                kompetensi nasional.
-              </p>
-            </div>
-            <div className="ab-subject__grid">
-              <div className="ab-meta">
-                <span className="ab-meta__ico">📋</span>
-                <div>
-                  <span className="ab-meta__label">Kompetensi Dasar</span>
-                  <span className="ab-meta__val">Tata Rias Wajah Dasar</span>
-                </div>
-              </div>
-              <div className="ab-meta">
-                <span className="ab-meta__ico">⏰</span>
-                <div>
-                  <span className="ab-meta__label">Alokasi Waktu</span>
-                  <span className="ab-meta__val">X JP / Minggu</span>
-                </div>
-              </div>
-              <div className="ab-meta">
-                <span className="ab-meta__ico">🏆</span>
-                <div>
-                  <span className="ab-meta__label">Kelas</span>
-                  <span className="ab-meta__val">X & XI Tata Kecantikan</span>
-                </div>
-              </div>
-              <div className="ab-meta">
-                <span className="ab-meta__ico">📖</span>
-                <div>
-                  <span className="ab-meta__label">Kurikulum</span>
-                  <span className="ab-meta__val">Merdeka Belajar</span>
+                  <span className="ab-detail__value">(021) 73491027</span>
                 </div>
               </div>
             </div>
@@ -239,63 +187,6 @@ function About() {
           </div>
         </div>
       </section>
-
-      {/* ── SUMBER REFERENSI ─────────────────────── */}
-      <section className="ab-section ab-section--dark" id="referensi">
-        <div className="ab-container">
-          <div className="ab-section__head" data-aos="fade-up">
-            <span className="ab-tag ab-tag--dark">Pustaka</span>
-            <h2 className="ab-head--light">
-              Sumber <span>Referensi</span>
-            </h2>
-            <p className="ab-section__sub ab-sub--light">
-              Daftar rujukan yang digunakan dalam penyusunan materi pembelajaran
-              pada website ini.
-            </p>
-          </div>
-
-          <div className="ab-refs" data-aos="fade-up" data-aos-delay="80">
-            <div className="ab-ref">
-              <span className="ab-ref__num">01</span>
-              <p>
-                Kusantati, H., Prihatin, T., &amp; Wiana, W. (2008).{" "}
-                <em>Tata Kecantikan Kulit untuk SMK Jilid 1</em>. Direktorat
-                Pembinaan Sekolah Menengah Kejuruan.
-              </p>
-            </div>
-            <div className="ab-ref">
-              <span className="ab-ref__num">02</span>
-              <p>
-                Andiyanto &amp; Ayu Isni Karim. (2010).{" "}
-                <em>The Make Over: Rahasia Rias Wajah Sempurna</em>. Gramedia
-                Pustaka Utama.
-              </p>
-            </div>
-            <div className="ab-ref">
-              <span className="ab-ref__num">03</span>
-              <p>
-                Primadiati, R. (2001).{" "}
-                <em>Kecantikan, Kosmetika &amp; Estetika</em>. Gramedia Pustaka
-                Utama.
-              </p>
-            </div>
-            <div className="ab-ref">
-              <span className="ab-ref__num">04</span>
-              <p>
-                Rusman. (2012).{" "}
-                <em>Belajar dan Pembelajaran Berbasis Komputer</em>. Alfabeta.
-              </p>
-            </div>
-            <div className="ab-ref">
-              <span className="ab-ref__num">05</span>
-              <p>
-                Arsyad, A. (2014). <em>Media Pembelajaran</em>. Rajawali Pers.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
       <Footer />
     </>
   );

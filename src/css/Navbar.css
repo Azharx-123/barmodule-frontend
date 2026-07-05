@@ -68,7 +68,7 @@
 }
 
 .nav-links a:not(.active-link)::after,
-.nav-links span::after {
+.nav-links > li > span::after {
   content: "";
   position: absolute;
   width: 0;
@@ -80,7 +80,7 @@
 }
 
 .nav-links a:not(.active-link):hover::after,
-.nav-links span:hover::after {
+.nav-links > li > span:hover::after {
   width: 100%;
   left: 0;
 }
