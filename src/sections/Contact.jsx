@@ -1,4 +1,5 @@
 import React, { useState, useRef } from "react";
+import { contactAPI } from "../services/api";
 import emailjs from "@emailjs/browser";
 import "../css/Contact.css";
 
@@ -28,27 +29,49 @@ function Contact() {
     e.preventDefault();
     setFormStatus({ loading: true, success: false, error: null });
 
-    try {
-      await emailjs.sendForm(
+    const formData = new FormData(formRef.current);
+    const payload = {
+      name: formData.get("name"),
+      email: formData.get("email"),
+      title: formData.get("title"),
+      message: formData.get("message"),
+    };
+
+    const [emailResult, backendResult] = await Promise.allSettled([
+      emailjs.sendForm(
         process.env.REACT_APP_EMAILJS_SERVICE_ID,
         process.env.REACT_APP_EMAILJS_TEMPLATE_ID,
         formRef.current,
-        process.env.REACT_APP_EMAILJS_PUBLIC_KEY
-      );
+        process.env.REACT_APP_EMAILJS_PUBLIC_KEY,
+      ),
+      contactAPI.submit(payload),
+    ]);
 
-      setFormStatus({ loading: false, success: true, error: null });
-      formRef.current.reset();
+    if (emailResult.status === "rejected") {
+      console.error("EmailJS gagal:", emailResult.reason);
+    }
+    if (backendResult.status === "rejected") {
+      console.error("Simpan ke backend gagal:", backendResult.reason);
+    }
 
-      setTimeout(() => {
-        setFormStatus((prev) => ({ ...prev, success: false }));
-      }, 5000);
-    } catch (err) {
+    if (
+      emailResult.status === "rejected" &&
+      backendResult.status === "rejected"
+    ) {
       setFormStatus({
         loading: false,
         success: false,
         error: "Gagal mengirim pesan. Silakan coba lagi.",
       });
+      return;
     }
+
+    setFormStatus({ loading: false, success: true, error: null });
+    formRef.current.reset();
+
+    setTimeout(() => {
+      setFormStatus((prev) => ({ ...prev, success: false }));
+    }, 5000);
   };
 
   return (
@@ -138,7 +161,7 @@ function Contact() {
 
           <button
             type="submit"
-            className="submit-button"
+            className="contact-submit-btn"
             disabled={formStatus.loading}
           >
             {formStatus.loading ? "Mengirim..." : "Send"}

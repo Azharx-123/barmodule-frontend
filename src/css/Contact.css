@@ -1,3 +1,7 @@
+/* ==========================================================
+   Contact.css — Contact form section (Home page)
+   ========================================================== */
+
 @keyframes fadeInUp {
   from {
     opacity: 0;
@@ -11,18 +15,33 @@
 
 @keyframes borderPulse {
   0% {
-    border-color: #e410cb;
+    border-color: var(--color-primary);
   }
   50% {
-    border-color: #000000;
+    border-color: var(--color-black);
   }
   100% {
-    border-color: #e410cb;
+    border-color: var(--color-primary);
+  }
+}
+
+@keyframes ripple {
+  0% {
+    transform: scale(0, 0);
+    opacity: 1;
+  }
+  20% {
+    transform: scale(25, 25);
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(40, 40);
   }
 }
 
 .contact-container {
-  background-color: #fcfbf7;
+  background-color: var(--color-cream);
   padding: 100px 0;
 }
 
@@ -32,19 +51,19 @@
 }
 
 .contact-title h3 {
-  font-family: "Darker Grotesque", sans-serif;
+  font-family: var(--font-display);
   font-weight: 900;
   font-size: 30px;
   line-height: 1.2;
-  color: rgb(223, 58, 196);
+  color: var(--color-primary);
 }
 
 .contact-title h1 {
-  font-family: "Poppins", sans-serif;
+  font-family: var(--font-display);
   font-weight: 900;
   font-size: 50px;
   line-height: 1.2;
-  color: #34364A;
+  color: var(--color-text);
   margin-top: 10px;
 }
 
@@ -69,8 +88,8 @@
 
 .contact-form-container {
   width: 500px;
-  background-color: white;
-  border-radius: 20px;
+  background-color: var(--color-white);
+  border-radius: var(--radius-lg);
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   padding: 50px;
   animation-delay: 0.6s;
@@ -79,7 +98,7 @@
 .form__group {
   position: relative;
   margin-bottom: 30px;
-  transition: transform 0.3s ease;
+  transition: transform var(--transition-base);
 }
 
 .form__group.focused {
@@ -88,16 +107,16 @@
 
 .form__label {
   display: block;
-  font-family: "Poppins", sans-serif;
+  font-family: var(--font-body);
   font-weight: 700;
   font-size: 1rem;
-  color: #4a0946;
+  color: var(--color-text);
   margin-bottom: 5px;
-  transition: color 0.3s ease;
+  transition: color var(--transition-base);
 }
 
 .form__group.focused .form__label {
-  background: linear-gradient(90deg, #fe3efb, #000000, #fe3efb);
+  background: linear-gradient(90deg, var(--color-primary), var(--color-black), var(--color-primary));
   background-size: 200%;
   background-clip: text;
   -webkit-background-clip: text;
@@ -109,17 +128,19 @@
   width: 100%;
   padding: 10px 0;
   font-size: 1rem;
+  font-family: var(--font-body);
   border: none;
-  border-bottom: 2px solid #e410cb;
+  border-bottom: 2px solid var(--color-primary);
   background-color: transparent;
-  transition: border-color 0.3s ease;
-  resize: none; /* Mencegah resize manual */
-  box-sizing: border-box; /* Memastikan padding termasuk dalam width */
+  transition: border-color var(--transition-base);
+  resize: none;
+  box-sizing: border-box;
+  color: var(--color-text);
 }
 
 .form__field:focus {
   outline: none;
-  border-image: linear-gradient(90deg, #e410cb, #000000, #e410cb) 1;
+  border-image: linear-gradient(90deg, var(--color-primary), var(--color-black), var(--color-primary)) 1;
   border-image-slice: 1;
 }
 
@@ -127,39 +148,38 @@ textarea.form__field {
   resize: none;
   min-height: 100px;
   width: 100%;
-  box-sizing: border-box;
-  overflow: auto; /* Menambahkan scrollbar jika konten melebihi height */
+  overflow: auto;
 }
 
-.submit-button {
+.contact-submit-btn {
   width: 100%;
   padding: 15px;
   border: none;
   border-radius: 10px;
-  background-color: rgb(223, 58, 196);
-  color: white;
-  font-family: "Poppins", sans-serif;
+  background-color: var(--color-primary);
+  color: var(--color-white);
+  font-family: var(--font-body);
   font-weight: 900;
   font-size: 18px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all var(--transition-base);
   position: relative;
   overflow: hidden;
 }
 
-.submit-button:hover {
-  background-color: rgb(199, 52, 175) !important;
-  transform: translateY(-3px) !important;
+.contact-submit-btn:hover {
+  background-color: var(--color-primary-dark);
+  transform: translateY(-3px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
-.submit-button:active {
+.contact-submit-btn:active {
   transform: translateY(-1px);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-.submit-button::after {
-  content: '';
+.contact-submit-btn::after {
+  content: "";
   position: absolute;
   top: 50%;
   left: 50%;
@@ -172,14 +192,20 @@ textarea.form__field {
   transform-origin: 50% 50%;
 }
 
-.submit-button:focus:not(:active)::after {
+.contact-submit-btn:focus:not(:active)::after {
   animation: ripple 1s ease-out;
+}
+
+.contact-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .form-feedback {
   padding: 10px 14px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   font-size: 0.9rem;
+  font-family: var(--font-body);
   margin-bottom: 12px;
 }
 
@@ -195,32 +221,12 @@ textarea.form__field {
   border: 1px solid #fca5a5;
 }
 
-.submit-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-@keyframes ripple {
-  0% {
-    transform: scale(0, 0);
-    opacity: 1;
-  }
-  20% {
-    transform: scale(25, 25);
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-    transform: scale(40, 40);
-  }
-}
-
 @media (max-width: 600px) {
   .contact-form-container {
     width: 90%;
     padding: 30px;
   }
-  
+
   .contact-title h1 {
     font-size: 40px;
   }

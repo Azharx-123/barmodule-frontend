@@ -8,10 +8,7 @@ import {
 } from "react-router-dom";
 import Home from "./pages/Home";
 import About from "./pages/About";
-import Hairstyle from "./pages/Hairstyle";
-import Salon from "./pages/Salon";
-import Treatment from "./pages/Treatment";
-import Tatarias from "./pages/Tatarias";
+import CoursePage from "./pages/CoursePage";
 import AdminPanel from "./pages/AdminPanel";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -22,7 +19,7 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
 // Protected Route Component
-const ProtectedRoute = ({ children, requireAdmin = false }) => {
+const ProtectedRoute = ({ children, allowedRoles }) => {
   const token = localStorage.getItem("token");
   const userRole = localStorage.getItem("userRole");
   const location = useLocation();
@@ -31,7 +28,7 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (requireAdmin && userRole !== "admin") {
+  if (allowedRoles && !allowedRoles.includes(userRole)) {
     return <Navigate to="/" replace />;
   }
 
@@ -50,36 +47,12 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
 
-            {/* Course Routes */}
+            {/* Dynamic Course Route — menggantikan 4 route statis */}
             <Route
-              path="/belajar-hairstyle"
+              path="/belajar/:slug"
               element={
                 <ProtectedRoute>
-                  <Hairstyle />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/belajar-salon"
-              element={
-                <ProtectedRoute>
-                  <Salon />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/belajar-treatment"
-              element={
-                <ProtectedRoute>
-                  <Treatment />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/belajar-tatarias"
-              element={
-                <ProtectedRoute>
-                  <Tatarias />
+                  <CoursePage />
                 </ProtectedRoute>
               }
             />
@@ -98,7 +71,7 @@ function App() {
             <Route
               path="/admin"
               element={
-                <ProtectedRoute requireAdmin={true}>
+                <ProtectedRoute allowedRoles={["admin", "teacher"]}>
                   <AdminPanel />
                 </ProtectedRoute>
               }

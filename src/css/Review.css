@@ -1,11 +1,13 @@
+/* ==========================================================
+   Review.css — Testimonial / review section (Home page)
+   ========================================================== */
 .review-container {
-  position: relative; /* Set container to relative to position the overlay */
-  background-image: url("../assets/images/Tampilan\ Review.png");
+  position: relative;
+  background-image: url("../assets/images/Tampilan Review.png");
   background-size: cover;
   padding: 20px 0;
   height: fit-content;
 }
-
 .review-container::before {
   content: "";
   position: absolute;
@@ -13,49 +15,43 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(23, 7, 23, 0.867); /* Set overlay color with opacity */
-  z-index: 1; /* Ensure overlay is above the background image */
+  background-color: rgba(23, 7, 23, 0.867);
+  z-index: 1;
 }
-
 .review-section-container {
   position: relative;
-  z-index: 2; /* Ensures content is above the overlay */
+  z-index: 2;
   display: flex;
   justify-content: space-around;
   text-align: left;
 }
-
 .review-text-container {
   align-self: center;
 }
-
 .review-text-container p,
 .review-comment {
-  font-family: "Poppins";
-  color: rgb(240, 107, 213);
+  font-family: var(--font-body);
+  color: var(--color-primary-light);
   font-weight: 900;
   margin-top: 0;
   margin-bottom: 10px;
 }
-
 .review-text-container h2 {
-  font-family: "Poppins";
-  color: white;
+  font-family: var(--font-display);
+  color: var(--color-white);
   font-weight: 900;
   font-size: 32px;
   margin-bottom: 20px;
 }
-
 .review-comment {
-  font-family: "Poppins";
+  font-family: var(--font-body);
   max-width: 500px;
   color: #d6cece;
 }
-
 .button-review {
-  background-color: rgb(233, 16, 190);
-  color: white;
-  font-family: "Poppins";
+  background-color: var(--color-primary);
+  color: var(--color-white);
+  font-family: var(--font-body);
   font-weight: 900;
   font-size: 18px;
   padding: 10px 20px;
@@ -63,13 +59,11 @@
   border: none;
   margin-top: 20px;
   cursor: pointer;
+  transition: background-color var(--transition-base);
 }
-
 .button-review:hover {
-  background-color: rgb(240, 107, 213);
-  transition: 0.3s;
+  background-color: var(--color-primary-light);
 }
-
 .review-person-container {
   display: flex;
   flex-direction: column;
@@ -77,33 +71,30 @@
   height: 500px;
   position: relative;
 }
-
 @keyframes verticalSlide {
   0% {
     transform: translateY(0);
   }
   100% {
-    transform: translateY(-50%); /* Move up by half of the total height */
+    transform: translateY(-50%);
   }
 }
-
 .review-carousel {
   display: flex;
   flex-direction: column;
   animation: verticalSlide 10s linear infinite;
 }
-
 .review-carousel:hover {
-  animation-play-state: paused; /* Pauses animation when hovered */
+  animation-play-state: paused;
 }
-
 .card-review {
-  background-color: #f8f2f8;
-  border-radius: 20px;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  background-color: var(--color-cream);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
   margin: 20px auto;
   padding: 20px;
   width: 400px;
+  max-width: 100%;
   height: 200px;
   flex-shrink: 0;
 }
@@ -112,54 +103,62 @@
   animation-play-state: paused;
 }
 
-.card-review-text h2 {
-  font-family: "Poppins";
-  color: #170717;
-  font-weight: 900;
-  font-size: 24px;
-  margin: 10px 0;
+.card-review-text {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
+.card-review-text h2 {
+  display: flex;
+  align-items: center; 
+  height: 60px;        
+  margin: 0;
+  font-family: var(--font-display);
+  color: var(--color-black);
+  font-weight: 900;
+  font-size: 24px;
+}
 .review-comments {
-  font-family: "Poppins";
-  color: #626162;
+  font-family: var(--font-body);
+  color: var(--color-text-muted);
   font-size: 15px;
   margin: 15px 0 10px;
 }
-
 .persona-container {
   display: flex;
   align-items: center;
 }
-
 .persona-image {
   width: 50px;
   height: 50px;
   border-radius: 50%;
   margin-right: 15px;
-  background-color: aqua;
+  background-color: var(--color-primary);
 }
-
 .persona-image img {
   object-fit: cover;
   width: 100%;
   height: 100%;
   border-radius: 50%;
 }
-
 .persona-title {
   font-size: 13px;
-  font-family: "Poppins";
+  font-family: var(--font-body);
   margin-bottom: 3px;
 }
-
 .persona-profession {
   font-size: 14px;
-  font-family: "Poppins";
-  color: #626162;
+  font-family: var(--font-body);
+  color: var(--color-text-muted);
   margin-top: 3px;
 }
 
+*, *::before, *::after {
+    box-sizing: unset;
+}
+
+/* ── Responsive ───────────────────────────────────────────── */
 @media screen and (max-width: 1200px) {
   .review-section-container {
     flex-direction: column;
@@ -174,7 +173,6 @@
     margin-bottom: 0;
   }
 }
-
 @media screen and (max-width: 500px) {
   .card-review {
     width: 250px;

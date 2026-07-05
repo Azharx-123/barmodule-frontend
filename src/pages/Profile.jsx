@@ -6,10 +6,18 @@ import ImageUpload from "../components/ImageUpload";
 import api from "../services/api";
 import "../css/Profile.css";
 
+const getInitials = (name) => {
+  if (!name) return "?";
+  const parts = name.trim().split(" ").filter(Boolean);
+  if (parts.length === 1) return parts[0][0].toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+};
+
 const Profile = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showAvatarUpload, setShowAvatarUpload] = useState(false);
+  const [avatarError, setAvatarError] = useState(false);
   const navigate = useNavigate();
 
   const fetchProfile = useCallback(async () => {
@@ -31,18 +39,21 @@ const Profile = () => {
     fetchProfile();
   }, [fetchProfile]);
 
-  const handleAvatarUploadSuccess = (newAvatarUrl) => {
-    setUser({ ...user, avatar: newAvatarUrl });
-    setShowAvatarUpload(false);
-  };
+  useEffect(() => {
+    setAvatarError(false);
+  }, [user?.avatar]);
 
-  const handleLogout = () => {
-    localStorage.clear();
-    navigate("/");
-  };
+const handleAvatarUploadSuccess = (newAvatarUrl) => {
+  setUser({ ...user, avatar: newAvatarUrl });
+  setShowAvatarUpload(false);
+  localStorage.setItem("userAvatar", newAvatarUrl);
+  window.dispatchEvent(
+    new CustomEvent("avatarUpdated", { detail: newAvatarUrl }),
+  );
+};
 
   if (loading) {
-    return <div className="loading">Memuat...</div>;
+    return <div className="profile-loading">Memuat...</div>;
   }
 
   return (
@@ -51,19 +62,23 @@ const Profile = () => {
       <div className="profile-container">
         <div className="profile-header">
           <h1>Profil Saya</h1>
-          <button onClick={handleLogout} className="logout-btn">
-            Logout
-          </button>
         </div>
 
         <div className="profile-info">
           <div className="info-card">
             <div className="avatar-section">
-              <img
-                src={user?.avatar}
-                alt={user?.name}
-                className="user-avatar"
-              />
+              {user?.avatar && !avatarError ? (
+                <img
+                  src={user.avatar}
+                  alt={user?.name}
+                  className="user-avatar"
+                  onError={() => setAvatarError(true)}
+                />
+              ) : (
+                <div className="user-avatar user-avatar-initials">
+                  {getInitials(user?.name)}
+                </div>
+              )}
               <button
                 onClick={() => setShowAvatarUpload(!showAvatarUpload)}
                 className="change-avatar-btn"
@@ -95,28 +110,37 @@ const Profile = () => {
               {new Date(user?.createdAt).toLocaleDateString()}
             </p>
           </div>
-
-          <div className="info-card">
-            <h2>Course yang Diikuti</h2>
-            {user?.enrolledCourses?.length > 0 ? (
-              <div className="enrolled-courses">
-                {user.enrolledCourses.map((course, index) => (
-                  <div key={index} className="course-item">
-                    <img
-                      src={course.courseId?.image}
-                      alt={course.courseId?.title}
-                    />
-                    <div>
-                      <h3>{course.courseId?.title}</h3>
-                      <p>Progress: {course.progress}%</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p>Belum mengikuti course apapun</p>
-            )}
-          </div>
+          {user?.role !== "admin" && (
+            <div className="info-card">
+              <h2>Course yang Diikuti</h2>
+              {user?.enrolledCourses?.length > 0 ? (
+                <div className="enrolled-courses">
+                  {user.enrolledCourses
+                    .filter((course) => course.courseId)
+                    .map((course, index) => (
+                      <div
+                        key={index}
+                        className="course-item"
+                        onClick={() =>
+                          navigate(`/belajar/${course.courseId.slug}`)
+                        }
+                      >
+                        <img
+                          src={course.courseId.image}
+                          alt={course.courseId.title}
+                        />
+                        <div>
+                          <h3>{course.courseId.title}</h3>
+                          <p>Progress: {course.progress}%</p>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              ) : (
+                <p>Belum mengikuti course apapun</p>
+              )}
+            </div>
+          )}
         </div>
       </div>
       <Footer />

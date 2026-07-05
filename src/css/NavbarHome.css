@@ -55,11 +55,13 @@
   }
 
   .navbar-logos {
-    position: relative; /* Ubah ke relative agar tetap di tengah */
+    position: relative;
+    /* Ubah ke relative agar tetap di tengah */
     left: 0;
     transform: none;
     width: 100%;
-    justify-content: center; /* Pastikan konten tetap di tengah */
+    justify-content: center;
+    /* Pastikan konten tetap di tengah */
     gap: 1rem;
   }
 

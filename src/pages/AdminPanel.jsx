@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
+
 import "../css/AdminPanel.css";
 import ImageUpload from "../components/ImageUpload";
 
@@ -13,7 +14,12 @@ const emptyMC = () => ({
   options: ["", "", "", ""],
   answer: 0,
 });
-const emptyEssay = () => ({ question: "", image: "", keyWords: [] });
+const emptyEssay = () => ({
+  question: "",
+  image: "",
+  keyWords: [],
+  keyWordsInput: "",
+});
 const emptyMaterial = () => ({
   title: "",
   image: "",
@@ -27,6 +33,7 @@ const emptyTool = () => ({ title: "", description: "", categories: [] });
 const emptyToolCategory = () => ({ title: "", description: "", items: [] });
 const emptyToolItem = () => ({ subtitle: "", image: "", description: "" });
 const emptyContent = () => ({
+  image: "",
   ringkasan: "",
   tujuan: [],
   materi: [],
@@ -36,11 +43,21 @@ const emptyContent = () => ({
   evaluasi: [],
   sertifikasi: "",
 });
+const emptySummary = () => ({
+  pengenalan: [],
+  kebutuhan: [],
+  videos: [],
+});
+const emptySummaryPengenalan = () => ({ title: "", items: [] });
+const emptySummaryVideo = () => ({ title: "", url: "" });
 
 const AdminPanel = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("dashboard");
   const [token, setToken] = useState(() => localStorage.getItem("token") || "");
+  const [userRole, setUserRole] = useState(
+    () => localStorage.getItem("userRole") || "",
+  );
 
   // ─── Data States ──────────────────────────────────────────────────────────
   const [courses, setCourses] = useState([]);
@@ -48,22 +65,33 @@ const AdminPanel = () => {
   const [stats, setStats] = useState({});
   const [users, setUsers] = useState([]);
   const [quizResults, setQuizResults] = useState([]);
+  const [enrollmentModalUser, setEnrollmentModalUser] = useState(null);
+  const [selectedEnrollCourseId, setSelectedEnrollCourseId] = useState("");
 
   // ─── Course Form States ───────────────────────────────────────────────────
   const [courseFormTab, setCourseFormTab] = useState("basic");
   const [editingCourse, setEditingCourse] = useState(null);
-  const [uploadingImage, setUploadingImage] = useState(false);
+  const [courseKeywords, setCourseKeywords] = useState([]);
+  const [uploadingImage, setUploadingImage] = useState({
+    course: false,
+    content: false,
+  });
+  const [unsavedImages, setUnsavedImages] = useState({
+    course: null,
+    content: null,
+  });
+  const unsavedImagesRef = useRef({ course: null, content: null });
 
   // Basic fields
   const [courseTitle, setCourseTitle] = useState("");
   const [courseSlug, setCourseSlug] = useState("");
-  const [courseCategory, setCourseCategory] = useState("hairstyle");
   const [courseDescription, setCourseDescription] = useState("");
   const [courseImage, setCourseImage] = useState("");
   const [courseVideo, setCourseVideo] = useState("");
 
   // Nested fields
   const [courseContent, setCourseContent] = useState(emptyContent());
+  const [courseSummary, setCourseSummary] = useState(emptySummary());
   const [courseMaterials, setCourseMaterials] = useState([]);
   const [courseVideos, setCourseVideos] = useState([]);
   const [courseTools, setCourseTools] = useState([]);
@@ -80,14 +108,57 @@ const AdminPanel = () => {
   // ─── Auth Check ───────────────────────────────────────────────────────────
   useEffect(() => {
     const savedToken = localStorage.getItem("token");
-    const userRole = localStorage.getItem("userRole");
-    if (!savedToken || userRole !== "admin") {
+    const savedRole = localStorage.getItem("userRole"); // ⬅️ rename dari `userRole` biar tidak rancu
+    if (!savedToken || !["admin", "teacher"].includes(savedRole)) {
       alert("Akses ditolak. Silakan login sebagai admin.");
       navigate("/login");
       return;
     }
     setToken(savedToken);
+    setUserRole(savedRole); // ⬅️ baris baru — ini yang bikin setUserRole "terpakai"
   }, [navigate]);
+
+  // Simpan nilai terbaru unsavedImages ke ref, dipakai cleanup saat unmount.
+  // Ada 2 titik upload sekarang (course, content), jadi ref-nya juga object per-field.
+  useEffect(() => {
+    unsavedImagesRef.current = unsavedImages;
+  }, [unsavedImages]);
+
+  // Kalau admin keluar dari halaman admin (unmount) sambil ada upload yang belum disimpan,
+  // hapus semua gambar yang masih "unsaved" itu dari Cloudinary supaya tidak jadi sampah
+  useEffect(() => {
+    return () => {
+      Object.values(unsavedImagesRef.current || {}).forEach((url) => {
+        if (url) deleteUploadedImage(url);
+      });
+    };
+  }, []);
+
+  // Best-effort cleanup kalau admin menutup tab / refresh paksa saat ada upload yang belum disimpan.
+  // fetch() di cleanup biasa tidak dijamin selesai di skenario ini, makanya pakai sendBeacon.
+  useEffect(() => {
+    const handlePageHide = (event) => {
+      // event.persisted === true berarti halaman masuk bfcache (bisa di-restore lewat tombol Back),
+      // bukan benar-benar ditutup — jangan hapus gambar dalam kasus ini, admin mungkin masih butuh
+      if (event.persisted) return;
+      const pendingUrls = Object.values(unsavedImagesRef.current || {}).filter(
+        Boolean,
+      );
+      if (pendingUrls.length === 0) return;
+
+      const token = localStorage.getItem("token");
+      // Satu beacon per gambar — payload sengaja dibuat sederhana (1 imageUrl per call)
+      pendingUrls.forEach((imageUrl) => {
+        const payload = JSON.stringify({ imageUrl, token });
+        // text/plain, BUKAN application/json — menghindari CORS preflight untuk sendBeacon lintas origin
+        const blob = new Blob([payload], { type: "text/plain" });
+        navigator.sendBeacon(`${API_URL}/upload/image/beacon`, blob);
+      });
+    };
+
+    window.addEventListener("pagehide", handlePageHide);
+    return () => window.removeEventListener("pagehide", handlePageHide);
+  }, []);
 
   // ─── Fetch Functions ──────────────────────────────────────────────────────
   const fetchStats = useCallback(async () => {
@@ -95,18 +166,32 @@ const AdminPanel = () => {
       const res = await fetch(`${API_URL}/admin/stats`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setStats(await res.json());
+      const data = await res.json();
+      if (!res.ok) {
+        console.error("fetchStats failed:", data?.message || res.status);
+        setStats({});
+        return;
+      }
+      setStats(data && typeof data === "object" ? data : {});
     } catch (e) {
       console.error("fetchStats:", e);
+      setStats({});
     }
   }, [token]);
 
   const fetchCourses = useCallback(async () => {
     try {
       const res = await fetch(`${API_URL}/courses`);
-      setCourses(await res.json());
+      const data = await res.json();
+      if (!res.ok) {
+        console.error("fetchCourses failed:", data?.message || res.status);
+        setCourses([]);
+        return;
+      }
+      setCourses(Array.isArray(data) ? data : []);
     } catch (e) {
       console.error("fetchCourses:", e);
+      setCourses([]);
     }
   }, []);
 
@@ -115,9 +200,16 @@ const AdminPanel = () => {
       const res = await fetch(`${API_URL}/contact`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setContacts(await res.json());
+      const data = await res.json();
+      if (!res.ok) {
+        console.error("fetchContacts failed:", data?.message || res.status);
+        setContacts([]);
+        return;
+      }
+      setContacts(Array.isArray(data) ? data : []);
     } catch (e) {
       console.error("fetchContacts:", e);
+      setContacts([]);
     }
   }, [token]);
 
@@ -126,9 +218,23 @@ const AdminPanel = () => {
       const res = await fetch(`${API_URL}/admin/users`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setUsers(await res.json());
+      const data = await res.json();
+      if (!res.ok) {
+        console.error("fetchUsers failed:", data?.message || res.status);
+        setUsers([]);
+        return;
+      }
+      // backend mungkin mengembalikan array langsung, atau { users: [...] } — tangani keduanya
+      setUsers(
+        Array.isArray(data)
+          ? data
+          : Array.isArray(data?.users)
+            ? data.users
+            : [],
+      );
     } catch (e) {
       console.error("fetchUsers:", e);
+      setUsers([]);
     }
   }, [token]);
 
@@ -137,9 +243,22 @@ const AdminPanel = () => {
       const res = await fetch(`${API_URL}/admin/quiz-results`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setQuizResults(await res.json());
+      const data = await res.json();
+      if (!res.ok) {
+        console.error("fetchQuizResults failed:", data?.message || res.status);
+        setQuizResults([]);
+        return;
+      }
+      setQuizResults(
+        Array.isArray(data)
+          ? data
+          : Array.isArray(data?.results)
+            ? data.results
+            : [],
+      );
     } catch (e) {
       console.error("fetchQuizResults:", e);
+      setQuizResults([]);
     }
   }, [token]);
 
@@ -172,35 +291,47 @@ const AdminPanel = () => {
   // COURSE HANDLERS
   // =========================================================================
 
-  const resetCourseForm = () => {
+  const resetCourseForm = ({ cleanupUnsavedImage = true } = {}) => {
+    if (cleanupUnsavedImage) {
+      Object.values(unsavedImages).forEach((url) => {
+        if (url) deleteUploadedImage(url);
+      });
+    }
     setCourseTitle("");
     setCourseSlug("");
-    setCourseCategory("hairstyle");
     setCourseDescription("");
     setCourseImage("");
     setCourseVideo("");
     setCourseContent(emptyContent());
+    setCourseSummary(emptySummary());
     setCourseMaterials([]);
     setCourseVideos([]);
     setCourseTools([]);
+    setCourseKeywords([]);
     setEditingCourse(null);
     setCourseFormTab("basic");
-    setUploadingImage(false);
+    setUploadingImage({ course: false, content: false });
+    setUnsavedImages({ course: null, content: null });
   };
 
   const handleEditCourse = (course) => {
+    Object.values(unsavedImages).forEach((url) => {
+      if (url) deleteUploadedImage(url);
+    });
     setCourseTitle(course.title || "");
     setCourseSlug(course.slug || "");
-    setCourseCategory(course.category || "hairstyle");
     setCourseDescription(course.description || "");
     setCourseImage(course.image || "");
     setCourseVideo(course.videoUrl || "");
     setCourseContent(course.content || emptyContent());
+    setCourseSummary(course.summary || emptySummary());
     setCourseMaterials(course.materials || []);
     setCourseVideos(course.videos || []);
     setCourseTools(course.tools || []);
+    setCourseKeywords(course.searchKeywords || []);
     setEditingCourse(course);
     setCourseFormTab("basic");
+    setUnsavedImages({ course: null, content: null });
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -213,10 +344,11 @@ const AdminPanel = () => {
       const courseData = {
         title: courseTitle,
         slug: courseSlug,
-        category: courseCategory,
         description: courseDescription,
         image: courseImage,
         videoUrl: courseVideo,
+        searchKeywords: courseKeywords,
+        summary: courseSummary,
         content: courseContent,
         materials: courseMaterials,
         videos: courseVideos,
@@ -240,7 +372,7 @@ const AdminPanel = () => {
       if (res.ok) {
         alert(data.message);
         fetchCourses();
-        resetCourseForm();
+        resetCourseForm({ cleanupUnsavedImage: false });
       } else {
         alert(data.message || "Operasi gagal");
       }
@@ -250,28 +382,86 @@ const AdminPanel = () => {
   };
 
   const handleDeleteCourse = async (id) => {
-    if (!window.confirm("Yakin ingin menghapus course ini?")) return;
+    if (
+      !window.confirm(
+        "Yakin ingin menghapus course ini?\n\nSemua siswa yang terdaftar akan otomatis dikeluarkan, quiz beserta seluruh hasil pengerjaannya akan ikut terhapus permanen, dan seluruh gambar terkait (course, materi, alat, soal) akan dihapus dari penyimpanan.",
+      )
+    )
+      return;
     try {
       const res = await fetch(`${API_URL}/courses/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
+      const data = await res.json();
       if (res.ok) {
-        alert("Course berhasil dihapus");
+        alert(data.message);
         fetchCourses();
         fetchStats();
+        fetchUsers();
+        fetchQuizResults();
+        // Kalau course yang dihapus sedang dibuka di form Quiz, reset supaya tidak nyangkut
+        if (quizCourseId === id) {
+          setQuizCourseId("");
+          setExistingQuizId(null);
+          setMcQuestions([]);
+          setEssayQuestions([]);
+          setQuizLoaded(false);
+        }
+      } else {
+        alert(data.message || "Gagal menghapus course");
       }
     } catch (e) {
       alert("Error: " + e.message);
     }
   };
 
-  const handleImageUploadSuccess = (imageUrl) => {
-    setCourseImage(imageUrl);
-    setUploadingImage(false);
+  const deleteUploadedImage = async (imageUrl) => {
+    if (!imageUrl) return;
+    const authToken = localStorage.getItem("token");
+    try {
+      await fetch(`${API_URL}/upload/image`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${authToken}`,
+        },
+        body: JSON.stringify({ imageUrl }),
+      });
+    } catch (e) {
+      console.error("Gagal membersihkan gambar yang batal disimpan:", e);
+    }
   };
 
-  // ─── Content (ringkasan, tujuan, materi, dll) ─────────────────────────────
+  const handleImageUploadSuccess = (field, imageUrl) => {
+    const prev = unsavedImages[field];
+    if (prev && prev !== imageUrl) deleteUploadedImage(prev);
+    if (field === "course") setCourseImage(imageUrl);
+    if (field === "content") updateContent("image", imageUrl);
+    setUnsavedImages((p) => ({ ...p, [field]: imageUrl }));
+    setUploadingImage((p) => ({ ...p, [field]: false }));
+  };
+
+  const handleRemoveContentImage = () => {
+    if (
+      unsavedImages.content &&
+      unsavedImages.content === courseContent.image
+    ) {
+      deleteUploadedImage(unsavedImages.content);
+      setUnsavedImages((p) => ({ ...p, content: null }));
+    }
+    updateContent("image", "");
+  };
+
+  const handleRemoveCourseImage = () => {
+    if (unsavedImages.course && unsavedImages.course === courseImage) {
+      deleteUploadedImage(unsavedImages.course);
+      setUnsavedImages((p) => ({ ...p, course: null }));
+    }
+    setCourseImage("");
+  };
+
+  // ─── Content ─────────────────────────────────────────────────────────────
   const updateContent = (field, value) =>
     setCourseContent((prev) => ({ ...prev, [field]: value }));
 
@@ -295,7 +485,6 @@ const AdminPanel = () => {
       return { ...prev, [field]: arr };
     });
 
-  // Materi nested (title + items[])
   const addMateri = () =>
     setCourseContent((prev) => ({
       ...prev,
@@ -341,6 +530,104 @@ const AdminPanel = () => {
       };
       return { ...prev, materi: arr };
     });
+
+  // ─── Summary: Pengenalan ──────────────────────────────────────────────────
+  const addSummaryPengenalan = () =>
+    setCourseSummary((prev) => ({
+      ...prev,
+      pengenalan: [...(prev.pengenalan || []), emptySummaryPengenalan()],
+    }));
+
+  const updateSummaryPengenalanTitle = (idx, value) =>
+    setCourseSummary((prev) => {
+      const arr = [...prev.pengenalan];
+      arr[idx] = { ...arr[idx], title: value };
+      return { ...prev, pengenalan: arr };
+    });
+
+  const removeSummaryPengenalan = (idx) =>
+    setCourseSummary((prev) => ({
+      ...prev,
+      pengenalan: prev.pengenalan.filter((_, i) => i !== idx),
+    }));
+
+  const addSummaryPengenalanItem = (idx) =>
+    setCourseSummary((prev) => {
+      const arr = [...prev.pengenalan];
+      arr[idx] = { ...arr[idx], items: [...arr[idx].items, ""] };
+      return { ...prev, pengenalan: arr };
+    });
+
+  const updateSummaryPengenalanItem = (pIdx, iIdx, value) =>
+    setCourseSummary((prev) => {
+      const arr = [...prev.pengenalan];
+      const items = [...arr[pIdx].items];
+      items[iIdx] = value;
+      arr[pIdx] = { ...arr[pIdx], items };
+      return { ...prev, pengenalan: arr };
+    });
+
+  const removeSummaryPengenalanItem = (pIdx, iIdx) =>
+    setCourseSummary((prev) => {
+      const arr = [...prev.pengenalan];
+      arr[pIdx] = {
+        ...arr[pIdx],
+        items: arr[pIdx].items.filter((_, i) => i !== iIdx),
+      };
+      return { ...prev, pengenalan: arr };
+    });
+
+  // ─── Summary: Kebutuhan ───────────────────────────────────────────────────
+  const addSummaryKebutuhan = () =>
+    setCourseSummary((prev) => ({
+      ...prev,
+      kebutuhan: [...(prev.kebutuhan || []), ""],
+    }));
+
+  const updateSummaryKebutuhan = (idx, value) =>
+    setCourseSummary((prev) => {
+      const arr = [...prev.kebutuhan];
+      arr[idx] = value;
+      return { ...prev, kebutuhan: arr };
+    });
+
+  const removeSummaryKebutuhan = (idx) =>
+    setCourseSummary((prev) => ({
+      ...prev,
+      kebutuhan: prev.kebutuhan.filter((_, i) => i !== idx),
+    }));
+
+  const addCourseKeyword = () => setCourseKeywords((prev) => [...prev, ""]);
+
+  const updateCourseKeyword = (idx, value) =>
+    setCourseKeywords((prev) => {
+      const arr = [...prev];
+      arr[idx] = value;
+      return arr;
+    });
+
+  const removeCourseKeyword = (idx) =>
+    setCourseKeywords((prev) => prev.filter((_, i) => i !== idx));
+
+  // ─── Summary: Videos ─────────────────────────────────────────────────────
+  const addSummaryVideo = () =>
+    setCourseSummary((prev) => ({
+      ...prev,
+      videos: [...(prev.videos || []), emptySummaryVideo()],
+    }));
+
+  const updateSummaryVideo = (idx, field, value) =>
+    setCourseSummary((prev) => {
+      const arr = [...prev.videos];
+      arr[idx] = { ...arr[idx], [field]: value };
+      return { ...prev, videos: arr };
+    });
+
+  const removeSummaryVideo = (idx) =>
+    setCourseSummary((prev) => ({
+      ...prev,
+      videos: prev.videos.filter((_, i) => i !== idx),
+    }));
 
   // ─── Materials ────────────────────────────────────────────────────────────
   const addMaterial = () =>
@@ -546,6 +833,71 @@ const AdminPanel = () => {
   // USER HANDLERS
   // =========================================================================
 
+  const openEnrollmentModal = (user) => {
+    setEnrollmentModalUser(user);
+    setSelectedEnrollCourseId(user.enrolledCourses?.[0]?.courseId?._id || "");
+  };
+
+  // handler
+  const handleChangeRole = async (id, newRole) => {
+    const confirmMsg =
+      newRole === "teacher"
+        ? "Yakin jadikan user ini Teacher? Enrollment course & hasil quiz siswa ini (jika ada) akan otomatis dihapus."
+        : "Yakin jadikan user ini Siswa kembali?";
+    if (!window.confirm(confirmMsg)) return;
+    try {
+      const res = await fetch(`${API_URL}/admin/users/${id}/role`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ role: newRole }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert(data.message);
+        fetchUsers();
+        fetchStats();
+        fetchQuizResults();
+      } else {
+        alert(data.message || "Gagal mengubah role");
+      }
+    } catch (e) {
+      alert("Error: " + e.message);
+    }
+  };
+
+  const handleUpdateEnrollment = async () => {
+    if (!enrollmentModalUser) return;
+    try {
+      const res = await fetch(
+        `${API_URL}/admin/users/${enrollmentModalUser._id}/enrollment`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ courseId: selectedEnrollCourseId || null }),
+        },
+      );
+      const data = await res.json();
+      if (res.ok) {
+        alert(data.message);
+        setEnrollmentModalUser(null);
+        setSelectedEnrollCourseId("");
+        fetchUsers();
+        fetchQuizResults();
+        fetchStats();
+      } else {
+        alert(data.message || "Gagal update enrollment");
+      }
+    } catch (e) {
+      alert("Error: " + e.message);
+    }
+  };
+
   const handleDeleteUser = async (id) => {
     if (!window.confirm("Yakin ingin menghapus user ini?")) return;
     try {
@@ -582,9 +934,13 @@ const AdminPanel = () => {
         const data = await res.json();
         setExistingQuizId(data._id);
         setMcQuestions(data.multipleChoice || []);
-        setEssayQuestions(data.essay || []);
+        setEssayQuestions(
+          (data.essay || []).map((q) => ({
+            ...q,
+            keyWordsInput: (q.keyWords || []).join(", "),
+          })),
+        );
       } else {
-        // 404 = belum ada quiz, mulai kosong
         setExistingQuizId(null);
         setMcQuestions([]);
         setEssayQuestions([]);
@@ -599,6 +955,16 @@ const AdminPanel = () => {
 
   const handleSaveQuiz = async () => {
     if (!quizCourseId) return alert("Pilih course terlebih dahulu");
+
+    const essayToSave = essayQuestions.map((q) => ({
+      question: q.question,
+      image: q.image,
+      keyWords: (q.keyWordsInput ?? (q.keyWords || []).join(", "))
+        .split(",")
+        .map((k) => k.trim())
+        .filter(Boolean),
+    }));
+
     try {
       const res = await fetch(`${API_URL}/quiz`, {
         method: "POST",
@@ -609,13 +975,12 @@ const AdminPanel = () => {
         body: JSON.stringify({
           courseId: quizCourseId,
           multipleChoice: mcQuestions,
-          essay: essayQuestions,
+          essay: essayToSave,
         }),
       });
       const data = await res.json();
       if (res.ok) {
         alert(data.message);
-        // Reload untuk update existingQuizId jika baru dibuat
         handleLoadQuiz();
         fetchStats();
       } else {
@@ -682,9 +1047,17 @@ const AdminPanel = () => {
       arr[idx] = { ...arr[idx], [field]: value };
       return arr;
     });
-  const updateEssayKeywords = (idx, raw) =>
+  const updateEssayKeywordsInput = (idx, raw) =>
     setEssayQuestions((prev) => {
       const arr = [...prev];
+      arr[idx] = { ...arr[idx], keyWordsInput: raw };
+      return arr;
+    });
+
+  const commitEssayKeywords = (idx) =>
+    setEssayQuestions((prev) => {
+      const arr = [...prev];
+      const raw = arr[idx].keyWordsInput ?? "";
       arr[idx] = {
         ...arr[idx],
         keyWords: raw
@@ -701,14 +1074,21 @@ const AdminPanel = () => {
 
   const TABS = [
     { key: "dashboard", label: "📊 Dashboard" },
-    { key: "courses", label: "📚 Courses" },
-    { key: "quiz", label: "📝 Quiz" },
-    { key: "quiz-results", label: "🏆 Hasil Quiz" },
+    { key: "courses", label: "📚 Courses", roles: ["teacher"] },
+    { key: "quiz", label: "📝 Quiz", roles: ["teacher"] },
+    { key: "quiz-results", label: "🏆 Hasil Quiz", roles: ["teacher"] },
     { key: "users", label: "👥 Users" },
-    { key: "contacts", label: "📧 Contacts" },
-  ];
+    { key: "contacts", label: "📧 Contacts", roles: ["admin"] },
+  ].filter((t) => !t.roles || t.roles.includes(userRole));
 
-  const COURSE_FORM_TABS = ["basic", "content", "materials", "videos", "tools"];
+  const COURSE_FORM_TABS = [
+    "basic",
+    "summary",
+    "content",
+    "materials",
+    "videos",
+    "tools",
+  ];
 
   return (
     <>
@@ -716,7 +1096,7 @@ const AdminPanel = () => {
       <div className="admin-container">
         {/* ── Sidebar ── */}
         <div className="admin-sidebar">
-          <h2 className="sidebar-title">LMS Admin</h2>
+          <h2 className="sidebar-title">Barmodule Admin</h2>
           {TABS.map(({ key, label }) => (
             <button
               key={key}
@@ -744,7 +1124,14 @@ const AdminPanel = () => {
                   { label: "Total Users", value: stats.totalUsers },
                   { label: "Total Courses", value: stats.totalCourses },
                   { label: "Quiz Submissions", value: stats.totalQuizzes },
-                  { label: "Pending Contacts", value: stats.pendingContacts },
+                  ...(userRole === "admin"
+                    ? [
+                        {
+                          label: "Pending Contacts",
+                          value: stats.pendingContacts,
+                        },
+                      ]
+                    : []),
                 ].map(({ label, value }) => (
                   <div key={label} className="stat-card">
                     <h3>{label}</h3>
@@ -762,7 +1149,6 @@ const AdminPanel = () => {
             <div>
               <h2 className="page-title">Kelola Courses</h2>
 
-              {/* Form Card */}
               <div className="form-card">
                 <h3>
                   {editingCourse
@@ -798,19 +1184,6 @@ const AdminPanel = () => {
                       onChange={(e) => setCourseSlug(e.target.value)}
                       className="admin-input"
                     />
-                    <select
-                      value={courseCategory}
-                      onChange={(e) => setCourseCategory(e.target.value)}
-                      className="admin-input"
-                    >
-                      {["hairstyle", "salon", "treatment", "tatarias"].map(
-                        (c) => (
-                          <option key={c} value={c}>
-                            {c.charAt(0).toUpperCase() + c.slice(1)}
-                          </option>
-                        ),
-                      )}
-                    </select>
                     <textarea
                       placeholder="Deskripsi singkat course"
                       value={courseDescription}
@@ -818,52 +1191,289 @@ const AdminPanel = () => {
                       className="admin-textarea"
                     />
                     <input
-                      placeholder="URL Video Utama"
+                      placeholder="URL Video Hero (YouTube embed ID atau URL penuh)"
                       value={courseVideo}
                       onChange={(e) => setCourseVideo(e.target.value)}
                       className="admin-input"
                     />
-
-                    {/* Image upload */}
+                    <div className="array-field-group">
+                      <label className="field-label">
+                        Kata Kunci Pencarian (untuk fitur Explore)
+                      </label>
+                      <p
+                        style={{
+                          color: "#a0aec0",
+                          fontSize: 13,
+                          marginBottom: 8,
+                        }}
+                      >
+                        Kata kunci tambahan supaya course ini mudah ditemukan
+                        lewat pencarian Explore di Navbar (selain judul course
+                        sendiri).
+                      </p>
+                      {courseKeywords.map((kw, idx) => (
+                        <div key={idx} className="array-item-row">
+                          <input
+                            placeholder="Contoh: Manajemen Persediaan"
+                            value={kw}
+                            onChange={(e) =>
+                              updateCourseKeyword(idx, e.target.value)
+                            }
+                            className="admin-input"
+                          />
+                          <button
+                            onClick={() => removeCourseKeyword(idx)}
+                            className="btn-remove"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
+                      <button
+                        onClick={addCourseKeyword}
+                        className="btn-add-small"
+                      >
+                        + Tambah Kata Kunci
+                      </button>
+                    </div>
                     <div className="image-upload-section">
-                      <label className="field-label">Gambar Course</label>
+                      <label className="field-label">
+                        Gambar Thumbnail Course
+                      </label>
                       {courseImage ? (
                         <div className="current-image">
                           <img
                             src={courseImage}
-                            alt="Course"
+                            alt="Thumbnail"
                             style={{ maxWidth: "200px" }}
                           />
                           <button
                             type="button"
-                            onClick={() => setUploadingImage(!uploadingImage)}
+                            onClick={() =>
+                              setUploadingImage((p) => ({
+                                ...p,
+                                course: !p.course,
+                              }))
+                            }
                             className="admin-button"
                           >
-                            {uploadingImage ? "Batal" : "Ganti Gambar"}
+                            {uploadingImage.course ? "Batal" : "Ganti Gambar"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleRemoveCourseImage}
+                            className="admin-button cancel-button"
+                          >
+                            🗑️ Hapus
                           </button>
                         </div>
                       ) : (
                         <button
                           type="button"
-                          onClick={() => setUploadingImage(true)}
+                          onClick={() =>
+                            setUploadingImage((p) => ({ ...p, course: true }))
+                          }
                           className="admin-button"
                         >
                           Upload Gambar
                         </button>
                       )}
-                      {uploadingImage && (
+                      {uploadingImage.course && (
                         <ImageUpload
                           currentImage={courseImage}
                           uploadType="course"
-                          onUploadSuccess={handleImageUploadSuccess}
+                          onUploadSuccess={(url) =>
+                            handleImageUploadSuccess("course", url)
+                          }
                         />
                       )}
-                      <input
-                        placeholder="Atau masukkan URL Gambar langsung"
-                        value={courseImage}
-                        onChange={(e) => setCourseImage(e.target.value)}
-                        className="admin-input"
-                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* ── Tab: Summary ── */}
+                {courseFormTab === "summary" && (
+                  <div className="course-form">
+                    <p
+                      style={{
+                        color: "#718096",
+                        marginBottom: 16,
+                        fontSize: 14,
+                      }}
+                    >
+                      Bagian ini mengisi konten tab{" "}
+                      <strong>Course Summary</strong> yang tampil di halaman
+                      course (Pengenalan, Apa yang Dibutuhkan, Video
+                      Pengenalan).
+                    </p>
+
+                    {/* Pengenalan */}
+                    <div className="array-field-group">
+                      <label className="field-label">
+                        Tab Pengenalan — Sub-section
+                      </label>
+                      <p
+                        style={{
+                          color: "#a0aec0",
+                          fontSize: 13,
+                          marginBottom: 8,
+                        }}
+                      >
+                        Contoh sub-section: "Dibuat untuk", "Kompetensi Dasar",
+                        "Indikator Pencapaian"
+                      </p>
+                      {(courseSummary.pengenalan || []).map((pg, pIdx) => (
+                        <div key={pIdx} className="nested-card">
+                          <div className="nested-card-header">
+                            <span>Sub-section {pIdx + 1}</span>
+                            <button
+                              onClick={() => removeSummaryPengenalan(pIdx)}
+                              className="btn-remove"
+                            >
+                              ✕ Hapus
+                            </button>
+                          </div>
+                          <input
+                            placeholder="Judul sub-section (misal: Dibuat untuk)"
+                            value={pg.title}
+                            onChange={(e) =>
+                              updateSummaryPengenalanTitle(pIdx, e.target.value)
+                            }
+                            className="admin-input"
+                          />
+                          <label
+                            className="field-label"
+                            style={{ marginTop: 8 }}
+                          >
+                            Item
+                          </label>
+                          {(pg.items || []).map((item, iIdx) => (
+                            <div key={iIdx} className="array-item-row sub-item">
+                              <input
+                                placeholder="Item..."
+                                value={item}
+                                onChange={(e) =>
+                                  updateSummaryPengenalanItem(
+                                    pIdx,
+                                    iIdx,
+                                    e.target.value,
+                                  )
+                                }
+                                className="admin-input"
+                              />
+                              <button
+                                onClick={() =>
+                                  removeSummaryPengenalanItem(pIdx, iIdx)
+                                }
+                                className="btn-remove"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          ))}
+                          <button
+                            onClick={() => addSummaryPengenalanItem(pIdx)}
+                            className="btn-add-small"
+                          >
+                            + Tambah Item
+                          </button>
+                        </div>
+                      ))}
+                      <button
+                        onClick={addSummaryPengenalan}
+                        className="admin-button"
+                      >
+                        + Tambah Sub-section Pengenalan
+                      </button>
+                    </div>
+
+                    {/* Kebutuhan */}
+                    <div
+                      className="array-field-group"
+                      style={{ marginTop: 24 }}
+                    >
+                      <label className="field-label">
+                        Tab "Apa yang Dibutuhkan" — Daftar Alat/Bahan
+                      </label>
+                      {(courseSummary.kebutuhan || []).map((item, idx) => (
+                        <div key={idx} className="array-item-row">
+                          <input
+                            placeholder="Contoh: Gunting profesional"
+                            value={item}
+                            onChange={(e) =>
+                              updateSummaryKebutuhan(idx, e.target.value)
+                            }
+                            className="admin-input"
+                          />
+                          <button
+                            onClick={() => removeSummaryKebutuhan(idx)}
+                            className="btn-remove"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
+                      <button
+                        onClick={addSummaryKebutuhan}
+                        className="btn-add-small"
+                      >
+                        + Tambah Item Kebutuhan
+                      </button>
+                    </div>
+
+                    {/* Video Summary */}
+                    <div
+                      className="array-field-group"
+                      style={{ marginTop: 24 }}
+                    >
+                      <label className="field-label">
+                        Tab "Video" di Course Summary — Video Pengenalan
+                      </label>
+                      <p
+                        style={{
+                          color: "#a0aec0",
+                          fontSize: 13,
+                          marginBottom: 8,
+                        }}
+                      >
+                        Ini berbeda dengan Video Materi. Isi URL YouTube lengkap
+                        (misal: https://youtu.be/xxxx)
+                      </p>
+                      {(courseSummary.videos || []).map((vid, idx) => (
+                        <div key={idx} className="nested-card">
+                          <div className="nested-card-header">
+                            <span>Video {idx + 1}</span>
+                            <button
+                              onClick={() => removeSummaryVideo(idx)}
+                              className="btn-remove"
+                            >
+                              ✕ Hapus
+                            </button>
+                          </div>
+                          <input
+                            placeholder="Judul video"
+                            value={vid.title}
+                            onChange={(e) =>
+                              updateSummaryVideo(idx, "title", e.target.value)
+                            }
+                            className="admin-input"
+                          />
+                          <input
+                            placeholder="URL YouTube"
+                            value={vid.url}
+                            onChange={(e) =>
+                              updateSummaryVideo(idx, "url", e.target.value)
+                            }
+                            className="admin-input"
+                          />
+                        </div>
+                      ))}
+                      <button
+                        onClick={addSummaryVideo}
+                        className="admin-button"
+                      >
+                        + Tambah Video Pengenalan
+                      </button>
                     </div>
                   </div>
                 )}
@@ -871,6 +1481,68 @@ const AdminPanel = () => {
                 {/* ── Tab: Content ── */}
                 {courseFormTab === "content" && (
                   <div className="course-form">
+                    <p
+                      style={{
+                        color: "#718096",
+                        marginBottom: 16,
+                        fontSize: 14,
+                      }}
+                    >
+                      Bagian ini mengisi tab <strong>Deskripsi Kelas</strong> di
+                      Class Course.
+                    </p>
+                    <div className="image-upload-section">
+                      <label className="field-label">
+                        Gambar Deskripsi Kelas
+                      </label>
+                      {courseContent.image ? (
+                        <div className="current-image">
+                          <img
+                            src={courseContent.image}
+                            alt="Deskripsi"
+                            style={{ maxWidth: "200px" }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setUploadingImage((p) => ({
+                                ...p,
+                                content: !p.content,
+                              }))
+                            }
+                            className="admin-button"
+                          >
+                            {uploadingImage.content ? "Batal" : "Ganti Gambar"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleRemoveContentImage}
+                            className="admin-button cancel-button"
+                          >
+                            🗑️ Hapus
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setUploadingImage((p) => ({ ...p, content: true }))
+                          }
+                          className="admin-button"
+                        >
+                          Upload Gambar
+                        </button>
+                      )}
+                      {uploadingImage.content && (
+                        <ImageUpload
+                          currentImage={courseContent.image}
+                          uploadType="course-content"
+                          onUploadSuccess={(url) =>
+                            handleImageUploadSuccess("content", url)
+                          }
+                        />
+                      )}
+                    </div>
                     <label className="field-label">Ringkasan</label>
                     <textarea
                       placeholder="Ringkasan course secara keseluruhan"
@@ -880,7 +1552,6 @@ const AdminPanel = () => {
                       }
                       className="admin-textarea"
                     />
-
                     <label className="field-label">Durasi</label>
                     <input
                       placeholder="Contoh: 3 bulan / 120 jam"
@@ -888,7 +1559,6 @@ const AdminPanel = () => {
                       onChange={(e) => updateContent("durasi", e.target.value)}
                       className="admin-input"
                     />
-
                     <label className="field-label">Sertifikasi</label>
                     <input
                       placeholder="Nama atau jenis sertifikasi"
@@ -898,8 +1568,6 @@ const AdminPanel = () => {
                       }
                       className="admin-input"
                     />
-
-                    {/* Repeatable array fields */}
                     {[
                       {
                         field: "tujuan",
@@ -950,8 +1618,6 @@ const AdminPanel = () => {
                         </button>
                       </div>
                     ))}
-
-                    {/* Materi (nested: title + items[]) */}
                     <div className="array-field-group">
                       <label className="field-label">Materi (Bab)</label>
                       {(courseContent.materi || []).map((mat, mIdx) => (
@@ -1015,6 +1681,16 @@ const AdminPanel = () => {
                 {/* ── Tab: Materials ── */}
                 {courseFormTab === "materials" && (
                   <div className="course-form">
+                    <p
+                      style={{
+                        color: "#718096",
+                        marginBottom: 16,
+                        fontSize: 14,
+                      }}
+                    >
+                      Bagian ini mengisi tab <strong>Materi</strong> di Class
+                      Course (gambar, deskripsi, dan sub-sections).
+                    </p>
                     {courseMaterials.length === 0 && (
                       <p className="empty-hint">
                         Belum ada material. Klik tombol di bawah untuk menambah.
@@ -1048,14 +1724,13 @@ const AdminPanel = () => {
                           className="admin-input"
                         />
                         <textarea
-                          placeholder="Deskripsi material"
+                          placeholder="Deskripsi material (bisa berupa array jika dipisah dengan baris baru)"
                           value={mat.description}
                           onChange={(e) =>
                             updateMaterial(mIdx, "description", e.target.value)
                           }
                           className="admin-textarea"
                         />
-
                         <label className="field-label" style={{ marginTop: 8 }}>
                           Sections
                         </label>
@@ -1130,6 +1805,16 @@ const AdminPanel = () => {
                 {/* ── Tab: Videos ── */}
                 {courseFormTab === "videos" && (
                   <div className="course-form">
+                    <p
+                      style={{
+                        color: "#718096",
+                        marginBottom: 16,
+                        fontSize: 14,
+                      }}
+                    >
+                      Bagian ini mengisi tab <strong>Video</strong> di Class
+                      Course (video materi berseksi).
+                    </p>
                     {courseVideos.length === 0 && (
                       <p className="empty-hint">
                         Belum ada seksi video. Klik tombol di bawah untuk
@@ -1191,7 +1876,7 @@ const AdminPanel = () => {
                               className="admin-input"
                             />
                             <input
-                              placeholder="URL Video (YouTube/embed)"
+                              placeholder="URL Video YouTube (misal: https://youtu.be/xxxx)"
                               value={vid.url}
                               onChange={(e) =>
                                 updateVideoInSection(
@@ -1222,6 +1907,16 @@ const AdminPanel = () => {
                 {/* ── Tab: Tools ── */}
                 {courseFormTab === "tools" && (
                   <div className="course-form">
+                    <p
+                      style={{
+                        color: "#718096",
+                        marginBottom: 16,
+                        fontSize: 14,
+                      }}
+                    >
+                      Bagian ini mengisi bagian{" "}
+                      <strong>Persiapan Kerja / Alat</strong> di tab Materi.
+                    </p>
                     {courseTools.length === 0 && (
                       <p className="empty-hint">
                         Belum ada alat/peralatan. Klik tombol di bawah untuk
@@ -1240,7 +1935,7 @@ const AdminPanel = () => {
                           </button>
                         </div>
                         <input
-                          placeholder="Judul alat / kategori besar"
+                          placeholder="Judul grup alat / persiapan (misal: Persiapan Kerja)"
                           value={tool.title}
                           onChange={(e) =>
                             updateTool(tIdx, "title", e.target.value)
@@ -1255,7 +1950,6 @@ const AdminPanel = () => {
                           }
                           className="admin-textarea"
                         />
-
                         <label className="field-label" style={{ marginTop: 8 }}>
                           Kategori
                         </label>
@@ -1298,7 +1992,6 @@ const AdminPanel = () => {
                               }
                               className="admin-textarea"
                             />
-
                             <label
                               className="field-label"
                               style={{ marginTop: 8 }}
@@ -1384,7 +2077,7 @@ const AdminPanel = () => {
                       </div>
                     ))}
                     <button onClick={addTool} className="admin-button">
-                      + Tambah Alat
+                      + Tambah Grup Alat
                     </button>
                   </div>
                 )}
@@ -1420,7 +2113,6 @@ const AdminPanel = () => {
                     <thead>
                       <tr>
                         <th>Judul</th>
-                        <th>Kategori</th>
                         <th>Slug</th>
                         <th>Aksi</th>
                       </tr>
@@ -1429,7 +2121,6 @@ const AdminPanel = () => {
                       {courses.map((course) => (
                         <tr key={course._id}>
                           <td>{course.title}</td>
-                          <td>{course.category}</td>
                           <td>{course.slug}</td>
                           <td>
                             <button
@@ -1461,7 +2152,6 @@ const AdminPanel = () => {
             <div>
               <h2 className="page-title">Kelola Quiz</h2>
               <div className="form-card">
-                {/* Pilih course */}
                 <div className="quiz-course-select">
                   <select
                     value={quizCourseId}
@@ -1489,7 +2179,6 @@ const AdminPanel = () => {
 
                 {quizLoaded && (
                   <>
-                    {/* Status bar */}
                     <div className="quiz-info-bar">
                       <span>
                         {existingQuizId
@@ -1506,7 +2195,6 @@ const AdminPanel = () => {
                       )}
                     </div>
 
-                    {/* Sub-tabs: MC vs Essay */}
                     <div className="form-subtabs">
                       <button
                         onClick={() => setQuizSubTab("mc")}
@@ -1522,7 +2210,6 @@ const AdminPanel = () => {
                       </button>
                     </div>
 
-                    {/* ── MC Questions ── */}
                     {quizSubTab === "mc" && (
                       <div>
                         {mcQuestions.length === 0 && (
@@ -1597,7 +2284,6 @@ const AdminPanel = () => {
                       </div>
                     )}
 
-                    {/* ── Essay Questions ── */}
                     {quizSubTab === "essay" && (
                       <div>
                         {essayQuestions.length === 0 && (
@@ -1632,10 +2318,13 @@ const AdminPanel = () => {
                             />
                             <input
                               placeholder="Kata kunci jawaban — pisahkan dengan koma"
-                              value={(q.keyWords || []).join(", ")}
-                              onChange={(e) =>
-                                updateEssayKeywords(qIdx, e.target.value)
+                              value={
+                                q.keyWordsInput ?? (q.keyWords || []).join(", ")
                               }
+                              onChange={(e) =>
+                                updateEssayKeywordsInput(qIdx, e.target.value)
+                              }
+                              onBlur={() => commitEssayKeywords(qIdx)}
                               className="admin-input"
                             />
                             {(q.keyWords || []).length > 0 && (
@@ -1655,7 +2344,6 @@ const AdminPanel = () => {
                       </div>
                     )}
 
-                    {/* Simpan */}
                     <div
                       className="button-group"
                       style={{
@@ -1688,7 +2376,7 @@ const AdminPanel = () => {
                         <th>Nama</th>
                         <th>Email</th>
                         <th>Role</th>
-                        <th>Courses Diikuti</th>
+                        <th>Course</th>
                         <th>Bergabung</th>
                         <th>Aksi</th>
                       </tr>
@@ -1715,22 +2403,85 @@ const AdminPanel = () => {
                               {user.role}
                             </span>
                           </td>
-                          <td>{user.enrolledCourses?.length || 0} course</td>
+                          <td>
+                            {["admin", "teacher"].includes(user.role) ? (
+                              <span
+                                style={{
+                                  color: "#a0aec0",
+                                  fontStyle: "italic",
+                                }}
+                              >
+                                Dapat mengikuti semua course
+                              </span>
+                            ) : user.enrolledCourses?.length > 0 ? (
+                              user.enrolledCourses[0].courseId?.title || (
+                                <span
+                                  style={{
+                                    color: "#a0aec0",
+                                    fontStyle: "italic",
+                                  }}
+                                >
+                                  Course terhapus
+                                </span>
+                              )
+                            ) : (
+                              <span
+                                style={{
+                                  color: "#a0aec0",
+                                  fontStyle: "italic",
+                                }}
+                              >
+                                Belum ikut course
+                              </span>
+                            )}
+                          </td>
                           <td>
                             {new Date(user.createdAt).toLocaleDateString(
                               "id-ID",
                             )}
                           </td>
                           <td>
-                            {user.role !== "admin" ? (
-                              <button
-                                onClick={() => handleDeleteUser(user._id)}
-                                className="action-button delete-button"
-                              >
-                                🗑️ Hapus
-                              </button>
-                            ) : (
+                            {user.role === "admin" ||
+                            (user.role === "teacher" &&
+                              userRole === "teacher") ? (
                               <span className="protected-label">Protected</span>
+                            ) : (
+                              <>
+                                {user.role === "student" && (
+                                  <button
+                                    onClick={() => openEnrollmentModal(user)}
+                                    className="action-button edit-button"
+                                  >
+                                    ✏️ Edit Course
+                                  </button>
+                                )}
+                                {userRole === "admin" && (
+                                  <button
+                                    onClick={() =>
+                                      handleChangeRole(
+                                        user._id,
+                                        user.role === "teacher"
+                                          ? "student"
+                                          : "teacher",
+                                      )
+                                    }
+                                    className="action-button edit-button"
+                                  >
+                                    {user.role === "teacher"
+                                      ? "👤 Jadikan Siswa"
+                                      : "🎓 Jadikan Teacher"}
+                                  </button>
+                                )}
+                                {(userRole === "admin" ||
+                                  user.role === "student") && (
+                                  <button
+                                    onClick={() => handleDeleteUser(user._id)}
+                                    className="action-button delete-button"
+                                  >
+                                    🗑️ Hapus
+                                  </button>
+                                )}
+                              </>
                             )}
                           </td>
                         </tr>
@@ -1820,8 +2571,6 @@ const AdminPanel = () => {
           {activeTab === "quiz-results" && (
             <div>
               <h2 className="page-title">Hasil Quiz ({quizResults.length})</h2>
-
-              {/* Summary cards */}
               <div
                 className="stats-grid"
                 style={{
@@ -1861,8 +2610,6 @@ const AdminPanel = () => {
                   </p>
                 </div>
               </div>
-
-              {/* Results table */}
               <div className="table-card">
                 <div className="table-container">
                   <table className="admin-table">
@@ -1871,7 +2618,6 @@ const AdminPanel = () => {
                         <th>Nama</th>
                         <th>Email</th>
                         <th>Course</th>
-                        <th>Kategori</th>
                         <th>Skor</th>
                         <th>Tanggal</th>
                       </tr>
@@ -1880,7 +2626,7 @@ const AdminPanel = () => {
                       {quizResults.length === 0 ? (
                         <tr>
                           <td
-                            colSpan="6"
+                            colSpan="5"
                             style={{
                               textAlign: "center",
                               color: "#a0aec0",
@@ -1897,22 +2643,6 @@ const AdminPanel = () => {
                             <td>{result.userId?.name || "—"}</td>
                             <td>{result.userId?.email || "—"}</td>
                             <td>{result.courseId?.title || "—"}</td>
-                            <td>
-                              {result.courseId?.category ? (
-                                <span
-                                  className={`status-badge ${result.courseId.category}`}
-                                  style={{
-                                    background:
-                                      "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-                                    color: "white",
-                                  }}
-                                >
-                                  {result.courseId.category}
-                                </span>
-                              ) : (
-                                "—"
-                              )}
-                            </td>
                             <td>
                               <span
                                 className="score-badge"
@@ -1957,8 +2687,35 @@ const AdminPanel = () => {
           )}
         </div>
       </div>
+      {enrollmentModalUser && (
+        <div className="popup-overlay">
+          <div className="popup-content">
+            <p>
+              Atur course untuk <strong>{enrollmentModalUser.name}</strong>
+            </p>
+            <select
+              value={selectedEnrollCourseId}
+              onChange={(e) => setSelectedEnrollCourseId(e.target.value)}
+              className="admin-input"
+            >
+              <option value="">— Keluarkan dari course —</option>
+              {courses.map((c) => (
+                <option key={c._id} value={c._id}>
+                  {c.title}
+                </option>
+              ))}
+            </select>
+            <div className="button-group" style={{ marginTop: 12 }}>
+              <button onClick={handleUpdateEnrollment}>Simpan</button>
+              <button onClick={() => setEnrollmentModalUser(null)}>
+                Batal
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
-};
+};;
 
 export default AdminPanel;

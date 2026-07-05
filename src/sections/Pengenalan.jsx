@@ -18,10 +18,6 @@ function Pengenalan({ scrollToService }) {
 
   return (
     <div className="main-section-container">
-      <link
-        href="https://fonts.googleapis.com/css2?family=Darker+Grotesque:wght@400;700;900&family=Poppins:wght@500;600&display=swap"
-        rel="stylesheet"
-      />
       <div
         className="text-main-container"
         data-aos="fade-right"
@@ -29,7 +25,7 @@ function Pengenalan({ scrollToService }) {
         data-aos-duration="500"
         data-aos-once="false"
       >
-        <h1 className="main-title" style={{ color: "#34364A" }}>
+        <h1 className="main-title">
           Mari belajar tentang Tata Rias bersama <span>LMS.</span>
         </h1>
         <p className="main-subtitle">

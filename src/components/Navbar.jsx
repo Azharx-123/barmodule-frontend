@@ -1,43 +1,33 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
+import api from "../services/api";
 import { BiMenu } from "react-icons/bi";
 import { AiOutlineClose } from "react-icons/ai";
 import { BiSearch } from "react-icons/bi";
-import { FaUser, FaUserCircle } from "react-icons/fa";
+import { FaUser } from "react-icons/fa";
 import Image1 from "../assets/images/logounj.png";
 import Image2 from "../assets/images/logosmk7.png";
 import "../css/Navbar.css";
 
+// Data statis untuk modal Explore (di luar "Materi" — halaman umum seperti About)
 const searchData = [
   {
     category: "About",
     keywords: ["Visi", "Misi", "Sejarah", "Tujuan Pembelajaran", "Kontak"],
     path: "/about",
   },
-  {
-    category: "Tatarias",
-    keywords: ["Makeup", "Facial", "Skincare", "Beauty Treatment"],
-    path: "/belajar-tatarias",
-  },
-  {
-    category: "Salon",
-    keywords: ["Hair Care", "Nail Art", "Spa", "Massage"],
-    path: "/belajar-salon",
-  },
-  {
-    category: "Treatment",
-    keywords: ["Body Treatment", "Face Treatment", "Hair Treatment"],
-    path: "/belajar-treatment",
-  },
-  {
-    category: "Hairstyle",
-    keywords: ["Haircut", "Hair Coloring", "Hair Styling", "Hair Extension"],
-    path: "/belajar-hairstyle",
-  },
 ];
+
+const getInitials = (name) => {
+  if (!name) return "?";
+  const parts = name.trim().split(" ").filter(Boolean);
+  if (parts.length === 1) return parts[0][0].toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+};
 
 function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [materiOpen, setMateriOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [exploreOpen, setExploreOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -46,11 +36,40 @@ function Navbar() {
   const [userName, setUserName] = useState("");
   const [userRole, setUserRole] = useState("");
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [userAvatar, setUserAvatar] = useState(
+    localStorage.getItem("userAvatar") || null,
+  );
+  const [avatarError, setAvatarError] = useState(false);
+
+  // ─── Daftar course dinamis untuk dropdown "Materi" ─────────────────────────
+  // Menggantikan link statis Tatarias/Salon/Treatment/Hairstyle — sekarang
+  // diambil langsung dari database sesuai title & slug course masing-masing.
+  const [navCourses, setNavCourses] = useState([]);
+  const [navCoursesLoaded, setNavCoursesLoaded] = useState(false);
 
   const location = useLocation();
   const navigate = useNavigate();
   const searchRef = useRef(null);
   const userMenuRef = useRef(null);
+
+  useEffect(() => {
+    setAvatarError(false);
+  }, [userAvatar]);
+
+  // Ambil daftar course untuk dropdown Materi (public, tidak perlu token)
+  useEffect(() => {
+    api
+      .get("/courses")
+      .then((res) => {
+        const data = res.data;
+        setNavCourses(Array.isArray(data) ? data : []);
+      })
+      .catch((err) => {
+        console.error("Gagal memuat daftar course untuk navbar:", err);
+        setNavCourses([]);
+      })
+      .finally(() => setNavCoursesLoaded(true));
+  }, []);
 
   // Check login status
   useEffect(() => {
@@ -62,10 +81,42 @@ function Navbar() {
       setIsLoggedIn(true);
       setUserName(name || "User");
       setUserRole(role || "user");
+      // tampilkan avatar dari cache dulu biar gak kedip
+      const cachedAvatar = localStorage.getItem("userAvatar");
+      if (cachedAvatar) setUserAvatar(cachedAvatar);
+
+      // lalu ambil yang terbaru dari server
+      api
+        .get("/users/profile")
+        .then((res) => {
+          const avatarUrl = res.data?.avatar;
+          if (avatarUrl) {
+            setUserAvatar(avatarUrl);
+            localStorage.setItem("userAvatar", avatarUrl);
+          } else {
+            setUserAvatar(null);
+            localStorage.removeItem("userAvatar");
+          }
+        })
+        .catch((err) => {
+          console.error("Gagal mengambil avatar:", err);
+        });
+    } else {
+      setIsLoggedIn(false);
+      setUserAvatar(null);
     }
   }, [location]);
 
-   const isAtAdmin = location.pathname.startsWith("/admin");
+  useEffect(() => {
+    const handleAvatarUpdate = (e) => {
+      setUserAvatar(e.detail);
+    };
+    window.addEventListener("avatarUpdated", handleAvatarUpdate);
+    return () =>
+      window.removeEventListener("avatarUpdated", handleAvatarUpdate);
+  }, []);
+
+  const isAtAdmin = location.pathname.startsWith("/admin");
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -77,24 +128,32 @@ function Navbar() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-  
+
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
+    setMateriOpen(false);
   };
 
   const isActive = (path) => location.pathname === path;
 
-  useEffect(() => {
-    const handleScroll = () => {
-      const isScrolled = window.scrollY > 50;
-      if (isScrolled !== scrolled) {
-        setScrolled(isScrolled);
-      }
-    };
+useEffect(() => {
+  // Jika sedang di halaman admin, jangan aktifkan efek scroll
+  if (isAtAdmin) {
+    setScrolled(false);
+    return;
+  }
 
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [scrolled]);
+  const handleScroll = () => {
+    setScrolled(window.scrollY > 50);
+  };
+
+  // Jalankan sekali saat pertama render
+  handleScroll();
+
+  window.addEventListener("scroll", handleScroll);
+
+  return () => window.removeEventListener("scroll", handleScroll);
+}, [isAtAdmin]);
 
   useEffect(() => {
     if (exploreOpen) {
@@ -109,11 +168,21 @@ function Navbar() {
     };
   }, [exploreOpen]);
 
+  // ─── Search di modal Explore: gabungkan data statis (About) + course dinamis ──
   useEffect(() => {
     if (searchTerm) {
-      const results = searchData.reduce((acc, category) => {
+      const combinedData = [
+        ...searchData,
+        ...navCourses.map((course) => ({
+          category: course.title,
+          keywords: [course.title, ...(course.searchKeywords || [])],
+          path: `/belajar/${course.slug}`,
+        })),
+      ];
+
+      const results = combinedData.reduce((acc, category) => {
         const matchingKeywords = category.keywords.filter((keyword) =>
-          keyword.toLowerCase().includes(searchTerm.toLowerCase())
+          keyword.toLowerCase().includes(searchTerm.toLowerCase()),
         );
 
         if (matchingKeywords.length > 0) {
@@ -130,14 +199,16 @@ function Navbar() {
     } else {
       setFilteredResults([]);
     }
-  }, [searchTerm]);
+  }, [searchTerm, navCourses]);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("userId");
     localStorage.removeItem("userName");
     localStorage.removeItem("userRole");
+    localStorage.removeItem("userAvatar");
     setIsLoggedIn(false);
+    setUserAvatar(null);
     setShowUserMenu(false);
     navigate("/");
   };
@@ -154,43 +225,37 @@ function Navbar() {
           About
         </a>
       </li>
-      <li className="dropdown">
-        <span>Materi</span>
-        <ul className="dropdown-menu">
-          <li>
-            <a
-              href="/belajar-tatarias"
-              className={isActive("/belajar-tatarias") ? "active-link" : ""}
-            >
-              Tatarias
-            </a>
-          </li>
-          <li>
-            <a
-              href="/belajar-salon"
-              className={isActive("/belajar-salon") ? "active-link" : ""}
-            >
-              Salon
-            </a>
-          </li>
-          <li>
-            <a
-              href="/belajar-treatment"
-              className={isActive("/belajar-treatment") ? "active-link" : ""}
-            >
-              Treatment
-            </a>
-          </li>
-          <li>
-            <a
-              href="/belajar-hairstyle"
-              className={isActive("/belajar-hairstyle") ? "active-link" : ""}
-            >
-              Hairstyle
-            </a>
-          </li>
-        </ul>
+      <li className={`dropdown ${mobile && materiOpen ? "dropdown-open" : ""}`}>
+  <span onClick={mobile ? () => setMateriOpen((prev) => !prev) : undefined}>
+    Materi
+  </span>
+  <ul className="dropdown-menu">
+    {!navCoursesLoaded ? (
+      <li>
+        <span style={{ opacity: 0.6, cursor: "default" }}>Memuat...</span>
       </li>
+    ) : navCourses.length > 0 ? (
+      navCourses.map((course) => (
+        <li key={course._id}>
+          <a
+            href={`/belajar/${course.slug}`}
+            className={isActive(`/belajar/${course.slug}`) ? "active-link" : ""}
+            onClick={() => {
+              setMateriOpen(false);
+              setMobileMenuOpen(false);
+            }}
+          >
+            {course.title}
+          </a>
+        </li>
+      ))
+    ) : (
+      <li>
+        <span style={{ opacity: 0.6, cursor: "default" }}>Belum ada kelas</span>
+      </li>
+    )}
+  </ul>
+</li>
       <li>
         <a
           onClick={(e) => {
@@ -242,7 +307,18 @@ function Navbar() {
                     className="user-button"
                     onClick={() => setShowUserMenu(!showUserMenu)}
                   >
-                    <FaUserCircle size={24} />
+                    {userAvatar && !avatarError ? (
+                      <img
+                        src={userAvatar}
+                        alt={userName}
+                        className="navbar-avatar"
+                        onError={() => setAvatarError(true)}
+                      />
+                    ) : (
+                      <div className="navbar-avatar navbar-avatar-initials">
+                        {getInitials(userName)}
+                      </div>
+                    )}
                     <span>{userName}</span>
                   </button>
 
@@ -350,6 +426,26 @@ function Navbar() {
                           <a
                             key={keyword}
                             href={category.path}
+                            className="explore-keyword"
+                          >
+                            {keyword}
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+
+                  {navCourses.map((course) => (
+                    <div key={course._id} className="explore-category">
+                      <h3>{course.title}</h3>
+                      <div className="explore-keywords">
+                        {(course.searchKeywords?.length > 0
+                          ? course.searchKeywords
+                          : [course.title]
+                        ).map((keyword) => (
+                          <a
+                            key={keyword}
+                            href={`/belajar/${course.slug}`}
                             className="explore-keyword"
                           >
                             {keyword}

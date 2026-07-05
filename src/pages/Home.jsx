@@ -12,7 +12,6 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import Footer from "../components/Footer";
 import Pengenalan from "../sections/Pengenalan";
-import Explore from "../sections/Explore";
 import Service from "../sections/Service";
 import PDFplayer from "../components/PDFplayer";
 import Review from "../sections/Review";
@@ -84,7 +83,6 @@ const MainContent = ({ scrollToService, serviceRef, contentRef }) => (
     <div ref={serviceRef}>
       <Service />
     </div>
-    <Explore />
     <PDFplayer
       pdfUrl={process.env.PUBLIC_URL + "/pdfs/Teknik Membentuk Alis.pdf"}
       title="Buku Panduan Pembuatan Masker Beras Merah dan Yoghurt"

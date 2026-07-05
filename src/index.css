@@ -1,13 +1,93 @@
+/* ==========================================================
+   index.css — Global Base & Design Tokens
+   All CSS files reference these :root variables.
+   ========================================================== */
+
+@import url("https://fonts.googleapis.com/css2?family=Darker+Grotesque:wght@400;700;900&family=Poppins:wght@400;500;600;700;900&display=swap");
+
+/* ── Design Tokens ──────────────────────────────────────── */
+:root {
+  --color-primary: #fe3efb;
+  --color-primary-dark: #c41dd0;
+  --color-primary-light: #ff33fc;
+  --color-secondary: #1a1a1a;
+  --color-dark: #1a1a1a;
+  --color-cream: #fff5f8;
+  --color-bg-light: #fff0f5;
+  --color-white: #ffffff;
+  --color-black: #000000;
+  --color-text: #1a1a1a;
+  --color-text-muted: #6b6b6b;
+  --color-border: #f0d4e4;
+  --color-accent-purple: #ff33fc;
+  --color-accent-violet: #c41dd0;
+
+  --font-display: "Darker Grotesque", sans-serif;
+  --font-body: "Poppins", sans-serif;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-pill: 9999px;
+
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 15px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.12);
+
+  --transition-fast: 0.2s ease;
+  --transition-base: 0.3s ease;
+}
+
+/* ── Universal Reset ────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* ── Heading Base (Darker Grotesque everywhere) ─────────── */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+}
+
+/* ── Body ───────────────────────────────────────────────── */
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  padding-top: 100px;
+  font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  color: var(--color-text);
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
+}
+
+/* ── Shared Keyframes ───────────────────────────────────── */
+@keyframes shine {
+  0% {
+    background-position: 0%;
+  }
+  100% {
+    background-position: 200%;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }

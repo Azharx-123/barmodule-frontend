@@ -1,5 +1,8 @@
+/* ==========================================================
+   Footer.css — Site footer (original + dark theme variants)
+   ========================================================== */
 .footer {
-  font-family: "Poppins", sans-serif;
+  font-family: var(--font-body, "Poppins", sans-serif);
   padding: 2rem 1rem;
 }
 
@@ -18,7 +21,7 @@
 
 .footer-section h4 {
   font-size: 1.5rem;
-  margin-top: 0px;
+  margin-top: 0;
   margin-bottom: 1rem;
 }
 
@@ -38,7 +41,7 @@
   display: flex;
   align-items: center;
   text-decoration: none;
-  transition: color 0.3s ease;
+  transition: color var(--transition-base);
 }
 
 .icon {
@@ -52,14 +55,14 @@
   border-top: 1px solid;
 }
 
-/* Original theme */
+/* ── Original Theme ───────────────────────────────────────── */
 .footer-original {
-  background-color: #ffffff;
-  color: #c41dd0;
+  background-color: var(--color-white, #ffffff);
+  color: var(--color-primary-dark, #c41dd0);
 }
 
 .footer-original h4 {
-  color: #c41dd0;
+  color: var(--color-primary-dark, #c41dd0);
 }
 
 .footer-original .contact-item,
@@ -68,27 +71,27 @@
 }
 
 .footer-original .social-links a:hover {
-  color: #ff33fc;
+  color: var(--color-primary-light, #ff33fc);
 }
 
 .footer-original .footer-bottom {
-  border-top-color: #c41dd0;
+  border-top-color: var(--color-primary-dark, #c41dd0);
   color: #9e0fab;
 }
 
-/* Dark theme */
+/* ── Dark Theme ───────────────────────────────────────────── */
 .footer-dark {
-  background-color: #000000;
-  color: #ffffff;
+  background-color: var(--color-black, #000000);
+  color: var(--color-white, #ffffff);
 }
 
 .footer-dark h4 {
-  color: #ffffff;
+  color: var(--color-white, #ffffff);
 }
 
 .footer-dark .contact-item,
 .footer-dark .social-links a {
-  color: #ffffff;
+  color: var(--color-white, #ffffff);
 }
 
 .footer-dark .social-links a:hover {
@@ -96,16 +99,18 @@
 }
 
 .footer-dark .footer-bottom {
-  border-top-color: #ffffff;
-  color: #ffffff;
+  border-top-color: var(--color-white, #ffffff);
+  color: var(--color-white, #ffffff);
 }
 
+/* ── Responsive ───────────────────────────────────────────── */
 @media screen and (max-width: 768px) {
   .footer-content {
     flex-direction: column;
     align-items: center;
     text-align: center;
   }
+
   .social-links {
     justify-content: center;
   }

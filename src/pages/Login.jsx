@@ -29,7 +29,7 @@ const Login = () => {
       alert("Login berhasil!");
 
       // Redirect based on role
-     if (response.data.user.role === "admin") {
+     if (["admin", "teacher"].includes(response.data.user.role)) {
        navigate("/admin");
      } else {
        navigate(from, { replace: true });

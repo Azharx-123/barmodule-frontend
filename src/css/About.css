@@ -1,13 +1,13 @@
 /* =========================================================
    ABOUT PAGE — Redesign
-   Palette: #ff33fc (pink) · #34364a (dark) · #fcfbf7 (cream)
+   Palette: pinkish · black (#1a1a1a) · white (#fff5f8 cream)
    Fonts  : Darker Grotesque (display) · Poppins (body)
    ========================================================= */
 
 /* ── RESETS & SHARED ──────────────────────────────────────── */
 .ab-hero,
 .ab-section {
-  font-family: "Poppins", sans-serif;
+  font-family: var(--font-body);
   box-sizing: border-box;
 }
 
@@ -36,7 +36,7 @@
   inset: 0;
   background: linear-gradient(
     140deg,
-    rgba(52, 54, 74, 0.90) 0%,
+    rgba(26, 26, 26, 0.90) 0%,
     rgba(255, 51, 252, 0.28) 100%
   );
 }
@@ -48,19 +48,20 @@
 }
 
 .ab-hero__content h1 {
-  font-family: "Darker Grotesque", sans-serif;
+  font-family: var(--font-display);
   font-size: 58px;
   font-weight: 900;
-  color: #fff;
+  color: var(--color-white);
   line-height: 1.08;
   margin: 16px 0 22px;
 }
 
 .ab-hero__content h1 span {
-  color: #ff33fc;
+  color: var(--color-primary-light);
 }
 
 .ab-hero__content p {
+  font-family: var(--font-body);
   font-size: 16px;
   color: rgba(255, 255, 255, 0.82);
   line-height: 1.75;
@@ -75,7 +76,7 @@
   left: 0;
   right: 0;
   height: 56px;
-  background: #fcfbf7;
+  background: var(--color-cream);
   clip-path: ellipse(58% 100% at 50% 100%);
   z-index: 3;
 }
@@ -83,9 +84,10 @@
 /* ── EYEBROW / TAG ───────────────────────────────────────── */
 .ab-eyebrow {
   display: inline-block;
-  background: rgb(255, 255, 255);
+  background: var(--color-white);
   border: 1px solid rgba(255, 51, 252, 0.45);
-  color: #ff33fc;
+  color: var(--color-primary-light);
+  font-family: var(--font-body);
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 1.6px;
@@ -97,7 +99,8 @@
 .ab-tag {
   display: inline-block;
   background: rgba(255, 51, 252, 0.10);
-  color: #ff33fc;
+  color: var(--color-primary-light);
+  font-family: var(--font-body);
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 1.6px;
@@ -115,15 +118,15 @@
 /* ── SECTIONS ────────────────────────────────────────────── */
 .ab-section {
   padding: 90px 0;
-  background-color: #fcfbf7;
+  background-color: var(--color-cream);
 }
 
 .ab-section--alt {
-  background-color: #fff;
+  background-color: var(--color-white);
 }
 
 .ab-section--dark {
-  background-color: #34364a;
+  background-color: var(--color-black);
 }
 
 /* Section head */
@@ -133,25 +136,26 @@
 }
 
 .ab-section__head h2 {
-  font-family: "Darker Grotesque", sans-serif;
+  font-family: var(--font-display);
   font-size: 40px;
   font-weight: 900;
-  color: #34364a;
+  color: var(--color-text);
   margin: 0 0 14px;
   line-height: 1.1;
 }
 
 .ab-section__head h2 span {
-  color: #ff33fc;
+  color: var(--color-primary-light);
 }
 
 .ab-head--light {
-  color: #fff !important;
+  color: var(--color-white) !important;
 }
 
 .ab-section__sub {
+  font-family: var(--font-body);
   font-size: 15px;
-  color: #777;
+  color: var(--color-text-muted);
   max-width: 520px;
   margin: 0 auto;
   line-height: 1.7;
@@ -169,10 +173,10 @@
 }
 
 .ab-card {
-  background: #fff;
+  background: var(--color-white);
   border-radius: 18px;
   padding: 34px 28px;
-  box-shadow: 0 4px 20px rgba(52, 54, 74, 0.07);
+  box-shadow: 0 4px 20px rgba(26, 26, 26, 0.07);
 }
 
 .ab-card--hover {
@@ -183,7 +187,7 @@
 .ab-card--hover:hover {
   transform: translateY(-7px);
   box-shadow: 0 14px 32px rgba(255, 51, 252, 0.14);
-  border-top-color: #ff33fc;
+  border-top-color: var(--color-primary-light);
 }
 
 .ab-card__icon {
@@ -192,16 +196,17 @@
 }
 
 .ab-card h3 {
-  font-family: "Darker Grotesque", sans-serif;
+  font-family: var(--font-display);
   font-size: 22px;
   font-weight: 900;
-  color: #34364a;
+  color: var(--color-text);
   margin: 0 0 12px;
 }
 
 .ab-card p {
+  font-family: var(--font-body);
   font-size: 14px;
-  color: #666;
+  color: var(--color-text-muted);
   line-height: 1.75;
   margin: 0;
 }
@@ -222,7 +227,7 @@
   width: 280px;
   height: 300px;
   border-radius: 20px;
-  background: linear-gradient(135deg, #f5e6ff 0%, #ffe0fb 100%);
+  background: linear-gradient(135deg, #fce4f1 0%, #ffe0fb 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -240,16 +245,16 @@
 
 /* School info text */
 .ab-split__info h2 {
-  font-family: "Darker Grotesque", sans-serif;
+  font-family: var(--font-display);
   font-size: 38px;
   font-weight: 900;
-  color: #34364a;
+  color: var(--color-text);
   margin: 10px 0 28px;
   line-height: 1.1;
 }
 
 .ab-split__info h2 span {
-  color: #ff33fc;
+  color: var(--color-primary-light);
 }
 
 /* ── DETAIL LIST ─────────────────────────────────────────── */
@@ -264,7 +269,7 @@
   align-items: flex-start;
   gap: 18px;
   padding: 13px 0;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .ab-detail:last-child {
@@ -272,9 +277,10 @@
 }
 
 .ab-detail__label {
+  font-family: var(--font-body);
   font-size: 12px;
   font-weight: 600;
-  color: #ff33fc;
+  color: var(--color-primary-light);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   min-width: 130px;
@@ -284,19 +290,20 @@
 }
 
 .ab-detail__value {
+  font-family: var(--font-body);
   font-size: 14px;
   font-weight: 500;
-  color: #34364a;
+  color: var(--color-text);
   line-height: 1.5;
 }
 
 /* ── SUBJECT CARD ────────────────────────────────────────── */
 .ab-subject {
-  background: #fff;
+  background: var(--color-white);
   border-radius: 20px;
   padding: 42px 44px;
-  box-shadow: 0 4px 24px rgba(52, 54, 74, 0.07);
-  border-left: 4px solid #ff33fc;
+  box-shadow: 0 4px 24px rgba(26, 26, 26, 0.07);
+  border-left: 4px solid var(--color-primary-light);
 }
 
 .ab-subject__lead {
@@ -304,16 +311,17 @@
 }
 
 .ab-subject__lead h3 {
-  font-family: "Darker Grotesque", sans-serif;
+  font-family: var(--font-display);
   font-size: 28px;
   font-weight: 900;
-  color: #34364a;
+  color: var(--color-text);
   margin: 0 0 12px;
 }
 
 .ab-subject__lead p {
+  font-family: var(--font-body);
   font-size: 14px;
-  color: #666;
+  color: var(--color-text-muted);
   line-height: 1.75;
   max-width: 560px;
   margin: 0 auto;
@@ -330,7 +338,7 @@
   display: flex;
   align-items: center;
   gap: 14px;
-  background: #fcfbf7;
+  background: var(--color-cream);
   border-radius: 12px;
   padding: 16px 20px;
 }
@@ -342,9 +350,10 @@
 
 .ab-meta__label {
   display: block;
+  font-family: var(--font-body);
   font-size: 10px;
   font-weight: 700;
-  color: #ff33fc;
+  color: var(--color-primary-light);
   text-transform: uppercase;
   letter-spacing: 0.8px;
   margin-bottom: 4px;
@@ -352,9 +361,10 @@
 
 .ab-meta__val {
   display: block;
+  font-family: var(--font-body);
   font-size: 14px;
   font-weight: 600;
-  color: #34364a;
+  color: var(--color-text);
 }
 
 /* ── DEVELOPER CARD ──────────────────────────────────────── */
@@ -362,10 +372,10 @@
   display: flex;
   align-items: center;
   gap: 60px;
-  background: #fcfbf7;
+  background: var(--color-cream);
   border-radius: 22px;
   padding: 50px;
-  box-shadow: 0 4px 24px rgba(52, 54, 74, 0.06);
+  box-shadow: 0 4px 24px rgba(26, 26, 26, 0.06);
 }
 
 .ab-dev__photo {
@@ -374,7 +384,7 @@
   height: 260px;
   border-radius: 18px;
   overflow: hidden;
-  border: 3px solid #ff33fc;
+  border: 3px solid var(--color-primary-light);
   box-shadow: 0 10px 30px rgba(255, 51, 252, 0.22);
 }
 
@@ -394,17 +404,18 @@
 }
 
 .ab-dev__heading h3 {
-  font-family: "Darker Grotesque", sans-serif;
+  font-family: var(--font-display);
   font-size: 30px;
   font-weight: 900;
-  color: #34364a;
+  color: var(--color-text);
   margin: 0 0 10px;
 }
 
 .ab-dev__badge {
   display: inline-block;
   background: rgba(255, 51, 252, 0.12);
-  color: #ff33fc;
+  color: var(--color-primary-light);
+  font-family: var(--font-body);
   font-size: 12px;
   font-weight: 600;
   padding: 5px 15px;
@@ -436,10 +447,10 @@
 }
 
 .ab-ref__num {
-  font-family: "Darker Grotesque", sans-serif;
+  font-family: var(--font-display);
   font-size: 26px;
   font-weight: 900;
-  color: #ff33fc;
+  color: var(--color-primary-light);
   flex-shrink: 0;
   line-height: 1;
   min-width: 34px;
@@ -447,6 +458,7 @@
 }
 
 .ab-ref p {
+  font-family: var(--font-body);
   font-size: 14px;
   color: rgba(255, 255, 255, 0.78);
   line-height: 1.75;
@@ -472,12 +484,10 @@
     font-size: 30px;
   }
 
-  /* Cards: vertical stack */
   .ab-cards {
     grid-template-columns: 1fr;
   }
 
-  /* Split: vertical */
   .ab-split {
     flex-direction: column;
     gap: 32px;
@@ -500,7 +510,6 @@
     min-width: unset;
   }
 
-  /* Subject grid: single col */
   .ab-subject {
     padding: 28px 24px;
   }
@@ -509,7 +518,6 @@
     grid-template-columns: 1fr;
   }
 
-  /* Dev: vertical */
   .ab-dev {
     flex-direction: column;
     padding: 32px 24px;

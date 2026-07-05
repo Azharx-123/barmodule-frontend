@@ -1,63 +1,57 @@
-import React, { useEffect } from "react";
-import Image1 from "../assets/images/card1.2.png";
-import Image2 from "../assets/images/card1.3.png";
-import Image3 from "../assets/images/card1.4.png";
-import Image4 from "../assets/images/card1.5.png";
+import React, { useState, useEffect } from "react";
 import "../css/Service.css";
 import AOS from "aos";
 import "aos/dist/aos.css";
+import { Link } from "react-router-dom";
+import { courseAPI } from "../services/api";
+import FALLBACK_IMAGE from "../assets/images/coursePhoto.png";
 
-const serviceData = [
-  {
-    id: 1,
-    title: "Tata Rias",
-    description:
-      "Seni dan teknik dalam menciptakan tampilan yang berbeda dan menarik melalui pengaturan, styling, dan perawatan rambut.",
-    image: Image1,
-    link: "/belajar-tatarias",
-  },
-  {
-    id: 2,
-    title: "Salon",
-    description:
-      "Salon adalah tempat yang menyediakan berbagai layanan kecantikan dan perawatan diri, seperti potong rambut, perawatan kulit, manikur, pedikur, dan pijat.",
-    image: Image2,
-    link: "/belajar-salon",
-  },
-  {
-    id: 3,
-    title: "Treatment",
-    description:
-      "Treatment di salon merupakan proses perawatan khusus yang ditawarkan untuk merawat dan memanjakan tubuh dan kulit.",
-    image: Image3,
-    link: "/belajar-treatment-rambut",
-  },
-  {
-    id: 4,
-    title: "Hairstyle",
-    description:
-      "Hairstyling adalah seni dan teknik dalam menciptakan tatanan rambut yang berbeda dan menarik.",
-    image: Image4,
-    link: "/belajar-hairstyling",
-  },
-];
-
-const ServiceCard = ({ title, description, image, link }) => (
+const ServiceCard = ({ title, description, image, slug }) => (
   <div className="service-card">
-    <a href={link}>
+    <Link to={`/belajar/${slug}`}>
       <div className="service-card-image">
-        <img src={image} alt={title} width={100} height={100} />
+        <img
+          src={image || FALLBACK_IMAGE}
+          alt={title}
+          onError={(e) => {
+            e.target.onerror = null; // cegah infinite loop kalau FALLBACK_IMAGE juga gagal
+            e.target.src = FALLBACK_IMAGE;
+          }}
+        />
       </div>
-      <h3 className="service-card-title">{title}</h3>
-      <p className="service-card-desc">{description}</p>
-    </a>
+      <div className="service-card-body">
+        <h3 className="service-card-title">{title}</h3>
+        <p className="service-card-desc">{description}</p>
+      </div>
+    </Link>
   </div>
 );
 
 const Service = () => {
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   useEffect(() => {
     AOS.init({});
   }, []);
+
+  useEffect(() => {
+    courseAPI
+      .getAll()
+      .then((res) => setCourses(res.data))
+      .catch((err) => {
+        console.error("Gagal mengambil data course:", err);
+        setError("Gagal memuat materi. Silakan coba lagi nanti.");
+      })
+      .finally(() => setLoading(false));
+  }, []);
+
+  // penting: AOS.init() di atas jalan sebelum card course ada di DOM
+  // (karena fetch-nya async), jadi perlu di-refresh setelah data masuk
+  useEffect(() => {
+    if (!loading) AOS.refresh();
+  }, [loading, courses]);
 
   return (
     <section className="our-service-container">
@@ -71,16 +65,25 @@ const Service = () => {
           Materi Yang <span className="highlight">Tersedia</span>
         </h1>
       </div>
-      <div
-        className="service-container"
-        data-aos="slide-up"
-        data-aos-offset="350"
-        data-aos-once="false"
-      >
-        {serviceData.map((service) => (
-          <ServiceCard key={service.id} {...service} />
-        ))}
-      </div>
+
+      {loading && <p className="service-status">Memuat materi...</p>}
+      {error && <p className="service-status service-status-error">{error}</p>}
+      {!loading && !error && courses.length === 0 && (
+        <p className="service-status">Belum ada materi tersedia.</p>
+      )}
+
+      {!loading && !error && courses.length > 0 && (
+        <div
+          className="service-container"
+          data-aos="slide-up"
+          data-aos-offset="350"
+          data-aos-once="false"
+        >
+          {courses.map((course) => (
+            <ServiceCard key={course._id} {...course} />
+          ))}
+        </div>
+      )}
     </section>
   );
 };
