@@ -187,75 +187,87 @@ const CoursePage = () => {
   }, [stopTimeUpdate]);
 
   useEffect(() => {
-    if (!course?.videoUrl) return;
+  if (!course?.videoUrl) return;
 
-    const heroVideoId = extractYouTubeId(course.videoUrl);
-    if (!heroVideoId) return;
+  const heroVideoId = extractYouTubeId(course.videoUrl);
+  console.log("[HERO DEBUG] effect running, videoUrl:", course.videoUrl, "heroVideoId:", heroVideoId);
+  if (!heroVideoId) return;
 
-    const onPlayerReady = (event) => {
-      heroVideoRef.current = event.target; // ⬅️ tambahan: pastikan ref selalu sinkron dengan instance yang benar-benar sudah ready
-      setHeroDuration(event.target.getDuration());
-      setIsHeroVideoReady(true);
-    };
+  const onPlayerReady = (event) => {
+    console.log("[HERO DEBUG] onPlayerReady fired!");
+    heroVideoRef.current = event.target;
+    setHeroDuration(event.target.getDuration());
+    setIsHeroVideoReady(true);
+  };
 
-    const onPlayerStateChange = (event) => {
-      if (event.data === window.YT?.PlayerState?.PLAYING) {
-        setIsHeroPlaying(true);
-        startTimeUpdate();
-      } else if (event.data === window.YT?.PlayerState?.PAUSED) {
-        setIsHeroPlaying(false);
-        stopTimeUpdate();
-      }
-    };
-
-    const initializeYouTubePlayer = () => {
-      // destroy kalau sudah ada
-      if (
-        heroVideoRef.current &&
-        typeof heroVideoRef.current.destroy === "function"
-      ) {
-        heroVideoRef.current.destroy();
-      }
-      heroVideoRef.current = new window.YT.Player("youtube-player", {
-        height: "100%",
-        width: "100%",
-        videoId: heroVideoId,
-        playerVars: {
-          autoplay: 0,
-          controls: 0,
-          modestbranding: 1,
-          rel: 0,
-          showinfo: 0,
-          fs: 0,
-        },
-        events: { onReady: onPlayerReady, onStateChange: onPlayerStateChange },
-      });
-    };
-
-    if (window.YT && window.YT.Player) {
-      initializeYouTubePlayer();
-    } else {
-      const tag = document.createElement("script");
-      tag.src = "https://www.youtube.com/iframe_api";
-      const firstScriptTag = document.getElementsByTagName("script")[0];
-      firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-      window.onYouTubeIframeAPIReady = initializeYouTubePlayer;
-    }
-
-    return () => {
-      stopTimeUpdate();
-      if (
-        heroVideoRef.current &&
-        typeof heroVideoRef.current.destroy === "function"
-      ) {
-        heroVideoRef.current.destroy();
-        heroVideoRef.current = null;
-      }
+  const onPlayerStateChange = (event) => {
+    if (event.data === window.YT?.PlayerState?.PLAYING) {
+      setIsHeroPlaying(true);
+      startTimeUpdate();
+    } else if (event.data === window.YT?.PlayerState?.PAUSED) {
       setIsHeroPlaying(false);
-      setIsHeroVideoReady(false);
-      setHeroCurrentTime(0);
+      stopTimeUpdate();
+    }
+  };
+
+  const initializeYouTubePlayer = () => {
+    console.log("[HERO DEBUG] initializeYouTubePlayer called");
+    console.log("[HERO DEBUG] div exists right now?", document.getElementById("youtube-player"));
+
+    if (
+      heroVideoRef.current &&
+      typeof heroVideoRef.current.destroy === "function"
+    ) {
+      heroVideoRef.current.destroy();
+    }
+    heroVideoRef.current = new window.YT.Player("youtube-player", {
+      height: "100%",
+      width: "100%",
+      videoId: heroVideoId,
+      playerVars: {
+        autoplay: 0,
+        controls: 0,
+        modestbranding: 1,
+        rel: 0,
+        showinfo: 0,
+        fs: 0,
+      },
+      events: { onReady: onPlayerReady, onStateChange: onPlayerStateChange },
+    });
+    console.log("[HERO DEBUG] YT.Player instance created:", heroVideoRef.current);
+  };
+
+  console.log("[HERO DEBUG] window.YT exists?", !!window.YT, "window.YT.Player exists?", !!window.YT?.Player);
+
+  if (window.YT && window.YT.Player) {
+    initializeYouTubePlayer();
+  } else {
+    console.log("[HERO DEBUG] loading iframe_api script...");
+    const tag = document.createElement("script");
+    tag.src = "https://www.youtube.com/iframe_api";
+    const firstScriptTag = document.getElementsByTagName("script")[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+    window.onYouTubeIframeAPIReady = () => {
+      console.log("[HERO DEBUG] onYouTubeIframeAPIReady fired!");
+      initializeYouTubePlayer();
     };
-  }, [course?.videoUrl, startTimeUpdate, stopTimeUpdate]);
+  }
+
+  return () => {
+    console.log("[HERO DEBUG] cleanup running");
+    stopTimeUpdate();
+    if (
+      heroVideoRef.current &&
+      typeof heroVideoRef.current.destroy === "function"
+    ) {
+      heroVideoRef.current.destroy();
+      heroVideoRef.current = null;
+    }
+    setIsHeroPlaying(false);
+    setIsHeroVideoReady(false);
+    setHeroCurrentTime(0);
+  };
+}, [course?.videoUrl, startTimeUpdate, stopTimeUpdate]);
 
   // ─── Hero video controls ──────────────────────────────────────────────────
   const handleHeroPlayPause = useCallback(() => {

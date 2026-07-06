@@ -5,16 +5,23 @@ import { Link } from "react-router-dom";
 import MainImage from "../assets/images/main-image.png";
 import { FaTimes } from "react-icons/fa";
 
+const videoByRole = {
+  student: "IeFhxIXg0EI",
+  teacher: "mIpy2oG3cgc",
+  admin: "kddkkkks", // cek ulang, ID ini kelihatannya belum valid
+};
+
 function Pengenalan({ scrollToService }) {
   const [isVideoOpen, setIsVideoOpen] = useState(false);
 
-  const handlePlayButtonClick = () => {
-    setIsVideoOpen(true);
-  };
+  const handlePlayButtonClick = () => setIsVideoOpen(true);
+  const handleCloseModal = () => setIsVideoOpen(false);
 
-  const handleCloseModal = () => {
-    setIsVideoOpen(false);
-  };
+  // Ambil role langsung dari localStorage
+  const role = localStorage.getItem("userRole") || "student";
+
+  const videoId = videoByRole[role] || videoByRole.student;
+  const embedSrc = `https://www.youtube.com/embed/${videoId}`;
 
   return (
     <div className="main-section-container">
@@ -71,8 +78,8 @@ function Pengenalan({ scrollToService }) {
             <iframe
               width="560"
               height="315"
-              src="https://www.youtube.com/embed/e9dP9dCbYhM"
-              title="Tutotial Cool Sculpting"
+              src={embedSrc}
+              title="Tutorial LMS"
               frameBorder="0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen

@@ -10,6 +10,8 @@
   align-items: center;
   justify-content: space-between;
   margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .discussion-header h3 {
@@ -20,10 +22,40 @@
 .connection-dot {
   font-size: 13px;
   color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.connection-dot::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-text-muted);
+  transition: background 0.2s ease;
 }
 
 .connection-dot.online {
   color: #38a169;
+}
+
+.connection-dot.online::before {
+  background: #38a169;
+  box-shadow: 0 0 0 0 rgba(56, 161, 105, 0.5);
+  animation: pulse-dot 2s infinite;
+}
+
+@keyframes pulse-dot {
+  0% {
+    box-shadow: 0 0 0 0 rgba(56, 161, 105, 0.45);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(56, 161, 105, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(56, 161, 105, 0);
+  }
 }
 
 .discussion-error {
@@ -55,12 +87,39 @@
   border-radius: 10px;
   border: 1px solid var(--color-border);
   margin-bottom: 12px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+
+.discussion-messages::-webkit-scrollbar {
+  width: 6px;
+}
+
+.discussion-messages::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 10px;
+}
+
+.discussion-messages::-webkit-scrollbar-track {
+  background: transparent;
 }
 
 .discussion-message {
   display: flex;
   gap: 10px;
   align-items: flex-start;
+  animation: message-in 0.25s ease-out;
+}
+
+@keyframes message-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .discussion-message.mine {
@@ -73,6 +132,8 @@
   border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;
+  border: 2px solid var(--color-white);
+  box-shadow: 0 0 0 1px var(--color-border);
 }
 
 .discussion-bubble {
@@ -81,6 +142,8 @@
   border-radius: 10px;
   padding: 8px 12px;
   max-width: 75%;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition: box-shadow 0.15s ease;
 }
 
 .discussion-message.mine .discussion-bubble {
@@ -114,21 +177,42 @@
   font-family: var(--font-body);
   font-weight: 700;
   text-transform: uppercase;
-  padding: 2px 8px;
+  letter-spacing: 0.03em;
+  padding: 2px 8px 2px 6px;
   border-radius: 10px;
   color: var(--color-white);
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.role-badge::before {
+  font-size: 10px;
+  line-height: 1;
 }
 
 .role-badge.admin {
   background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
 }
 
+.role-badge.admin::before {
+  content: "⚡";
+}
+
 .role-badge.student {
   background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
 }
 
+.role-badge.student::before {
+  content: "🎒";
+}
+
 .role-badge.teacher {
   background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
+}
+
+.role-badge.teacher::before {
+  content: "🎓";
 }
 
 .discussion-delete-btn {
@@ -141,10 +225,12 @@
   align-items: center;
   padding: 2px;
   border-radius: 4px;
+  transition: background 0.15s ease, transform 0.1s ease;
 }
 
 .discussion-delete-btn:hover {
   background: #fff5f5;
+  transform: scale(1.08);
 }
 
 .discussion-text {
@@ -171,6 +257,13 @@
   font-family: var(--font-body);
   font-size: 14px;
   color: var(--color-text);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.discussion-textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary) 20%, transparent);
 }
 
 .discussion-send-btn {
@@ -186,9 +279,26 @@
   font-family: var(--font-body);
   font-weight: 600;
   white-space: nowrap;
+  transition: transform 0.1s ease, box-shadow 0.15s ease;
+}
+
+.discussion-send-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
 }
 
 .discussion-send-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+@media (max-width: 480px) {
+  .discussion-messages {
+    padding: 10px;
+    max-height: 380px;
+  }
+
+  .discussion-bubble {
+    max-width: 85%;
+  }
 }

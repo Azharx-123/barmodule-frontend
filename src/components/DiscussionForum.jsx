@@ -9,7 +9,8 @@ const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || "http://localhost:5000";
 // Label & style badge per role — HANYA role yang memang ada di backend (User.role enum: "admin", "user")
 const ROLE_LABELS = {
   admin: { label: "Admin", className: "role-badge admin" },
-  user: { label: "Student", className: "role-badge user" },
+  teacher: { label: "Guru", className: "role-badge teacher" },
+  student: { label: "Siswa", className: "role-badge student" },
 };
 
 const DiscussionForum = ({ courseId }) => {
@@ -158,7 +159,7 @@ const DiscussionForum = ({ courseId }) => {
                     <span className="discussion-time">
                       {formatTime(msg.createdAt)}
                     </span>
-                    {currentUserRole === "admin" && (
+                    {["admin", "teacher"].includes(currentUserRole) && (
                       <button
                         className="discussion-delete-btn"
                         onClick={() => handleDelete(msg._id)}
