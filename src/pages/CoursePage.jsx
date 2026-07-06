@@ -19,15 +19,13 @@ import "react-quill/dist/quill.snow.css";
 import { Tab, TabList, TabPanel, Tabs } from "react-tabs";
 import "react-tabs/style/react-tabs.css";
 import YouTube from "react-youtube";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { API_BASE_URL } from "../services/api";
 import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
 import DiscussionForum from "../components/DiscussionForum";
 import "../css/CoursePage.css";
 
-// Ikon untuk setiap tab Class Course — murni presentasional, memudahkan
-// siswa mengenali jenis konten dari sekilas pandang.
 const CLASS_TAB_ICONS = {
   deskripsi: <BsFileTextFill aria-hidden="true" />,
   materi: <BsBookHalf aria-hidden="true" />,
@@ -55,7 +53,6 @@ const extractYouTubeId = (url) => {
 
 const CoursePage = () => {
   const { slug } = useParams();
-  const navigate = useNavigate();
 
   // ─── Data States ──────────────────────────────────────────────────────────
   const [course, setCourse] = useState(null);
@@ -605,8 +602,8 @@ const CoursePage = () => {
         <Navbar />
         <div className="course-error">
           <h2>😕 {error || "Course tidak ditemukan"}</h2>
-          <button onClick={() => navigate("/")} className="cta-button">
-            Kembali ke Home
+          <button onClick={fetchData} className="cta-button">
+            Coba Lagi
           </button>
         </div>
         <Footer />
@@ -618,27 +615,29 @@ const CoursePage = () => {
     return (
       <div className="course-page">
         <Navbar />
-        <section
-          className={`course-hero course-hero-locked${coursePreview?.image ? " has-bg-image" : ""}`}
-          style={
-            coursePreview?.image
-              ? { backgroundImage: `url(${coursePreview.image})` }
-              : undefined
-          }
-        >
-          <div className="hero-content">
-            <span className="hero-eyebrow">✨ Kelas Online</span>
-            <h1>{coursePreview?.title || "Course"}</h1>
-            <p>{coursePreview?.description}</p>
-            <div className="enrollment-notice">
-              <span className="enrollment-notice-label">Akses Terbatas</span>
-              <p>
-                Anda belum terdaftar di kelas ini. Silakan hubungi admin untuk
-                mendapatkan akses ke kelas ini.
-              </p>
+        <div className="course-container">
+          <section
+            className={`course-hero course-hero-locked${coursePreview?.image ? " has-bg-image" : ""}`}
+            style={
+              coursePreview?.image
+                ? { backgroundImage: `url(${coursePreview.image})` }
+                : undefined
+            }
+          >
+            <div className="hero-content">
+              <span className="hero-eyebrow">✨ Kelas Online</span>
+              <h1>{coursePreview?.title || "Course"}</h1>
+              <p>{coursePreview?.description}</p>
+              <div className="enrollment-notice">
+                <span className="enrollment-notice-label">Akses Terbatas</span>
+                <p>
+                  Anda belum terdaftar di kelas ini. Silakan hubungi admin untuk
+                  mendapatkan akses ke kelas ini.
+                </p>
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        </div>
         <Footer />
       </div>
     );

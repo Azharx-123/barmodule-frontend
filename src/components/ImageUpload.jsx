@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "../css/ImageUpload.css";
+import { API_BASE_URL } from "../services/api";
 
 const ImageUpload = ({
   onUploadSuccess,
@@ -50,11 +51,11 @@ const ImageUpload = ({
       formData.append(fieldName, file);
 
       const token = localStorage.getItem("token");
-      const endpoint = `/api/upload/${
+      const endpoint = `/upload/${
         uploadType === "avatar" ? "avatar" : uploadType
       }`;
 
-      const response = await fetch(`http://localhost:5000${endpoint}`, {
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,

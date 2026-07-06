@@ -58,6 +58,9 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: var(--color-text);
+  min-height: 100vh;
+  background: linear-gradient(135deg, var(--color-black) 0%, var(--color-primary) 100%);
+  background-attachment: fixed; /* biar gradient nggak "putus" tiap ganti halaman/scroll */
 }
 
 code {

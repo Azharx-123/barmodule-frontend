@@ -508,6 +508,12 @@
   min-height: calc(80vh - 80px);
 }
 
+.course-page .course-hero-locked:not(.has-bg-image) .hero-content {
+  max-width: 640px;
+  margin: 0 auto;
+  text-align: center;
+}
+
 /* ── Course Summary Section ───────────────────────────────── */
 .course-page .services-section {
   padding: 56px 0 40px;
