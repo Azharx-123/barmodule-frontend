@@ -26,6 +26,8 @@ const Login = () => {
       localStorage.setItem("userName", response.data.user.name);
       localStorage.setItem("userRole", response.data.user.role);
 
+      window.dispatchEvent(new Event("auth-changed"));
+      
       alert("Login berhasil!");
 
       // Redirect based on role

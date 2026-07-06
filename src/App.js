@@ -1,4 +1,6 @@
-import React from "react";
+import React, { useEffect } from "react";
+import { io } from "socket.io-client";
+import { forceLogout } from "./services/api";
 import {
   BrowserRouter,
   Routes,
@@ -36,6 +38,28 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
 };
 
 function App() {
+  useEffect(() => {
+    let socket;
+
+    const connectAuthSocket = () => {
+      if (socket) socket.disconnect(); // putus koneksi lama kalau ada (misal ganti akun)
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      socket = io(process.env.REACT_APP_SOCKET_URL || "http://localhost:5000", {
+        auth: { token },
+      });
+      socket.on("force-logout", forceLogout);
+    };
+
+    connectAuthSocket(); // percobaan pertama saat App mount (misal user refresh saat sudah login)
+    window.addEventListener("auth-changed", connectAuthSocket); // ⬅️ dengerin sinyal dari Login.jsx
+
+    return () => {
+      window.removeEventListener("auth-changed", connectAuthSocket);
+      if (socket) socket.disconnect();
+    };
+  }, []);
   return (
     <div className="App">
       <BrowserRouter>

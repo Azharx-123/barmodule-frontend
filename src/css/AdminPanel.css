@@ -779,6 +779,104 @@
   }
 }
 
+/* ── 14. Tugas (Assignments) ──────────────────────────────── */
+
+/* Header tiap card tugas (judul + deadline di kiri, tombol aksi di kanan).
+   Perlu wrap karena sekarang ada 3 tombol aksi (Lihat Submission/Edit/Hapus)
+   yang gampang kepanjangan bareng judul tugas di layar sempit. */
+.assignment-item-header {
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.assignment-item-header .button-group {
+  gap: 8px;
+}
+
+/* Badge status keterlambatan submission tugas — dipakai di tabel
+   submission pada tab Tugas, mengikuti pola status-badge.role yang sudah ada */
+.status-badge.late {
+  background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+  color: var(--color-white);
+}
+
+.status-badge.ontime {
+  background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+  color: var(--color-white);
+}
+
+/* Link download file tugas di dalam tabel submission — beberapa file
+   ditumpuk vertikal per baris siswa */
+.assignment-files-cell a {
+  display: block;
+  color: var(--color-primary-dark);
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  margin-bottom: 4px;
+}
+
+.assignment-files-cell a:last-child {
+  margin-bottom: 0;
+}
+
+.assignment-files-cell a:hover {
+  text-decoration: underline;
+  color: var(--color-primary);
+}
+
+/* Input skor di tabel submission — sempit karena cuma angka 0-100,
+   dan spin-button bawaan browser disembunyikan biar rapi */
+.score-input {
+  width: 70px;
+  text-align: center;
+  -moz-appearance: textfield;
+}
+
+.score-input::-webkit-outer-spin-button,
+.score-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Editor Instruksi (ReactQuill) — disesuaikan dengan design token supaya
+   menyatu dengan input/textarea lain di form admin, bukan tampilan default Quill */
+.admin-container .ql-toolbar.ql-snow {
+  border: 1px solid var(--color-border);
+  border-bottom: none;
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  background: var(--color-cream);
+  font-family: var(--font-body);
+}
+
+.admin-container .ql-container.ql-snow {
+  border: 1px solid var(--color-border);
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: 14px;
+  background: var(--color-white);
+  min-height: 140px;
+}
+
+.admin-container .ql-editor {
+  min-height: 140px;
+  color: var(--color-text);
+}
+
+.admin-container .ql-editor.ql-blank::before {
+  color: #a0aec0;
+  font-style: normal;
+}
+
+/* Quill tidak punya :focus native di wrapper-nya, jadi pakai :focus-within
+   pada elemen root ".quill" yang selalu di-render ReactQuill */
+.admin-container .quill:focus-within .ql-toolbar.ql-snow,
+.admin-container .quill:focus-within .ql-container.ql-snow {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(254, 62, 251, 0.1);
+}
+
 /* ── 13. Responsive ────────────────────────────────────────── */
 @media (max-width: 768px) {
   .admin-sidebar {

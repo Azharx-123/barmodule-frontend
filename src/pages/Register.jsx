@@ -31,6 +31,8 @@ const Register = () => {
       localStorage.setItem("userName", response.data.user.name);
       localStorage.setItem("userRole", response.data.user.role);
 
+      window.dispatchEvent(new Event("auth-changed"));
+      
       alert("Registrasi berhasil!");
       navigate("/profile");
     } catch (error) {

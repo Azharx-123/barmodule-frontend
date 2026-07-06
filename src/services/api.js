@@ -12,6 +12,11 @@ const api = axios.create({
   },
 });
 
+export const forceLogout = () => {
+  localStorage.clear();
+  window.location.href = "/login";
+};
+
 // Add token to requests automatically
 api.interceptors.request.use(
   (config) => {

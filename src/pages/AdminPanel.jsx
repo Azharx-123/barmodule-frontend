@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { API_BASE_URL } from "../services/api";
@@ -48,6 +50,13 @@ const emptySummary = () => ({
 });
 const emptySummaryPengenalan = () => ({ title: "", items: [] });
 const emptySummaryVideo = () => ({ title: "", url: "" });
+
+const toDatetimeLocalValue = (isoString) => {
+  if (!isoString) return "";
+  const d = new Date(isoString);
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
 
 const AdminPanel = () => {
   const navigate = useNavigate();
@@ -102,6 +111,48 @@ const AdminPanel = () => {
   const [essayQuestions, setEssayQuestions] = useState([]);
   const [quizLoaded, setQuizLoaded] = useState(false);
   const [loadingQuiz, setLoadingQuiz] = useState(false);
+
+  // ─── Assignment States ────────────────────────────────────────────────────
+  const [assignmentCourseId, setAssignmentCourseId] = useState("");
+  const [assignments, setAssignments] = useState([]);
+  const [assignmentsLoaded, setAssignmentsLoaded] = useState(false);
+  const [loadingAssignments, setLoadingAssignments] = useState(false);
+  const [editingAssignment, setEditingAssignment] = useState(null);
+  const [assignmentTitle, setAssignmentTitle] = useState("");
+  const [assignmentInstruksi, setAssignmentInstruksi] = useState("");
+  const [assignmentDeadline, setAssignmentDeadline] = useState("");
+  const [expandedAssignmentId, setExpandedAssignmentId] = useState(null);
+  const [submissionsByAssignment, setSubmissionsByAssignment] = useState({});
+  const [loadingSubmissionsFor, setLoadingSubmissionsFor] = useState(null);
+  const [gradeDrafts, setGradeDrafts] = useState({});
+
+  const quillModules = {
+    toolbar: [
+      [{ header: [1, 2, false] }],
+      ["bold", "italic", "underline", "strike", "blockquote"],
+      [
+        { list: "ordered" },
+        { list: "bullet" },
+        { indent: "-1" },
+        { indent: "+1" },
+      ],
+      ["link", "image"],
+      ["clean"],
+    ],
+  };
+  const quillFormats = [
+    "header",
+    "bold",
+    "italic",
+    "underline",
+    "strike",
+    "blockquote",
+    "list",
+    "bullet",
+    "indent",
+    "link",
+    "image",
+  ];
 
   // ─── Auth Check ───────────────────────────────────────────────────────────
   useEffect(() => {
@@ -998,10 +1049,13 @@ const AdminPanel = () => {
     )
       return;
     try {
-      const res = await fetch(`${API_BASE_URL}/admin/quizzes/${existingQuizId}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await fetch(
+        `${API_BASE_URL}/admin/quizzes/${existingQuizId}`,
+        {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
       if (res.ok) {
         alert("Quiz berhasil dihapus");
         setExistingQuizId(null);
@@ -1067,17 +1121,201 @@ const AdminPanel = () => {
     });
 
   // =========================================================================
+  // ASSIGNMENT HANDLERS
+  // =========================================================================
+
+  const fetchAssignments = useCallback(
+    async (courseId) => {
+      if (!courseId) return;
+      setLoadingAssignments(true);
+      setAssignmentsLoaded(false);
+      try {
+        const res = await fetch(
+          `${API_BASE_URL}/assignments/course/${courseId}`,
+          { headers: { Authorization: `Bearer ${token}` } },
+        );
+        const data = await res.json();
+        setAssignments(res.ok && Array.isArray(data) ? data : []);
+      } catch (e) {
+        console.error("fetchAssignments:", e);
+        setAssignments([]);
+      } finally {
+        setLoadingAssignments(false);
+        setAssignmentsLoaded(true);
+      }
+    },
+    [token],
+  );
+
+  const resetAssignmentForm = () => {
+    setEditingAssignment(null);
+    setAssignmentTitle("");
+    setAssignmentInstruksi("");
+    setAssignmentDeadline("");
+  };
+
+  const handleEditAssignment = (assignment) => {
+    setEditingAssignment(assignment);
+    setAssignmentTitle(assignment.title || "");
+    setAssignmentInstruksi(assignment.instruksi || "");
+    setAssignmentDeadline(toDatetimeLocalValue(assignment.deadline));
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleAssignmentSubmit = async () => {
+    if (!assignmentCourseId) return alert("Pilih course terlebih dahulu");
+    if (!assignmentTitle || !assignmentInstruksi || !assignmentDeadline) {
+      return alert("Judul, instruksi, dan deadline wajib diisi");
+    }
+    try {
+      const payload = {
+        courseId: assignmentCourseId,
+        title: assignmentTitle,
+        instruksi: assignmentInstruksi,
+        deadline: assignmentDeadline,
+      };
+      const url = editingAssignment
+        ? `${API_BASE_URL}/assignments/${editingAssignment._id}`
+        : `${API_BASE_URL}/assignments`;
+      const method = editingAssignment ? "PUT" : "POST";
+
+      const res = await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert(data.message);
+        resetAssignmentForm();
+        fetchAssignments(assignmentCourseId);
+      } else {
+        alert(data.message || "Gagal menyimpan tugas");
+      }
+    } catch (e) {
+      alert("Error: " + e.message);
+    }
+  };
+
+  const handleDeleteAssignment = async (id) => {
+    if (
+      !window.confirm(
+        "Yakin ingin menghapus tugas ini?\n\nSeluruh submission siswa dan file yang sudah diupload akan ikut terhapus permanen.",
+      )
+    )
+      return;
+    try {
+      const res = await fetch(`${API_BASE_URL}/assignments/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert(data.message);
+        if (expandedAssignmentId === id) setExpandedAssignmentId(null);
+        if (editingAssignment?._id === id) resetAssignmentForm();
+        fetchAssignments(assignmentCourseId);
+      } else {
+        alert(data.message || "Gagal menghapus tugas");
+      }
+    } catch (e) {
+      alert("Error: " + e.message);
+    }
+  };
+
+  const fetchSubmissions = async (assignmentId) => {
+    setLoadingSubmissionsFor(assignmentId);
+    try {
+      const res = await fetch(
+        `${API_BASE_URL}/assignments/${assignmentId}/submissions`,
+        { headers: { Authorization: `Bearer ${token}` } },
+      );
+      const data = await res.json();
+      const list = res.ok && Array.isArray(data) ? data : [];
+      setSubmissionsByAssignment((prev) => ({ ...prev, [assignmentId]: list }));
+      // isi draft skor/feedback dari data yang sudah ada, supaya input langsung terisi
+      setGradeDrafts((prev) => {
+        const next = { ...prev };
+        list.forEach((s) => {
+          next[s._id] = { score: s.score ?? "", feedback: s.feedback ?? "" };
+        });
+        return next;
+      });
+    } catch (e) {
+      console.error("fetchSubmissions:", e);
+      setSubmissionsByAssignment((prev) => ({ ...prev, [assignmentId]: [] }));
+    } finally {
+      setLoadingSubmissionsFor(null);
+    }
+  };
+
+  const handleToggleSubmissions = (assignmentId) => {
+    if (expandedAssignmentId === assignmentId) {
+      setExpandedAssignmentId(null);
+      return;
+    }
+    setExpandedAssignmentId(assignmentId);
+    if (!submissionsByAssignment[assignmentId]) fetchSubmissions(assignmentId);
+  };
+
+  const updateGradeDraft = (submissionId, field, value) =>
+    setGradeDrafts((prev) => ({
+      ...prev,
+      [submissionId]: { ...prev[submissionId], [field]: value },
+    }));
+
+  const handleSaveGrade = async (assignmentId, submissionId) => {
+    const draft = gradeDrafts[submissionId] || {};
+    if (
+      draft.score === "" ||
+      draft.score === undefined ||
+      draft.score === null
+    ) {
+      return alert("Skor wajib diisi");
+    }
+    try {
+      const res = await fetch(
+        `${API_BASE_URL}/assignments/submissions/${submissionId}/grade`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            score: draft.score,
+            feedback: draft.feedback || "",
+          }),
+        },
+      );
+      const data = await res.json();
+      if (res.ok) {
+        alert(data.message);
+        fetchSubmissions(assignmentId);
+      } else {
+        alert(data.message || "Gagal menyimpan nilai");
+      }
+    } catch (e) {
+      alert("Error: " + e.message);
+    }
+  };
+
+  // =========================================================================
   // RENDER
   // =========================================================================
 
-  const TABS = [
-    { key: "dashboard", label: "📊 Dashboard" },
-    { key: "courses", label: "📚 Courses", roles: ["teacher"] },
-    { key: "quiz", label: "📝 Quiz", roles: ["teacher"] },
-    { key: "quiz-results", label: "🏆 Hasil Quiz", roles: ["teacher"] },
-    { key: "users", label: "👥 Users" },
-    { key: "contacts", label: "📧 Contacts", roles: ["admin"] },
-  ].filter((t) => !t.roles || t.roles.includes(userRole));
+const TABS = [
+  { key: "dashboard", label: "📊 Dashboard" },
+  { key: "courses", label: "📚 Courses", roles: ["teacher"] },
+  { key: "quiz", label: "📝 Quiz", roles: ["teacher"] },
+  { key: "assignments", label: "📋 Tugas", roles: ["teacher"] },
+  { key: "quiz-results", label: "🏆 Hasil Quiz", roles: ["teacher"] },
+  { key: "users", label: "👥 Users" },
+  { key: "contacts", label: "📧 Contacts", roles: ["admin"] },
+].filter((t) => !t.roles || t.roles.includes(userRole));
 
   const COURSE_FORM_TABS = [
     "basic",
@@ -2683,6 +2921,288 @@ const AdminPanel = () => {
               </div>
             </div>
           )}
+
+          {/* ════════════════════════════════════════════
+    TUGAS (ASSIGNMENTS)
+════════════════════════════════════════════ */}
+          {activeTab === "assignments" && (
+            <div>
+              <h2 className="page-title">Kelola Tugas</h2>
+              <div className="form-card">
+                <div className="quiz-course-select">
+                  <select
+                    value={assignmentCourseId}
+                    onChange={(e) => {
+                      setAssignmentCourseId(e.target.value);
+                      setAssignmentsLoaded(false);
+                      setAssignments([]);
+                      setExpandedAssignmentId(null);
+                      resetAssignmentForm();
+                    }}
+                    className="admin-input"
+                  >
+                    <option value="">-- Pilih Course --</option>
+                    {courses.map((c) => (
+                      <option key={c._id} value={c._id}>
+                        {c.title}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    onClick={() => fetchAssignments(assignmentCourseId)}
+                    disabled={!assignmentCourseId || loadingAssignments}
+                    className="admin-button"
+                  >
+                    {loadingAssignments ? "Loading..." : "Load Tugas"}
+                  </button>
+                </div>
+
+                {assignmentsLoaded && (
+                  <>
+                    {/* Form create/edit — selalu terlihat */}
+                    <div className="nested-card" style={{ marginTop: 16 }}>
+                      <h3>
+                        {editingAssignment
+                          ? `Edit: ${editingAssignment.title}`
+                          : "Tambah Tugas Baru"}
+                      </h3>
+                      <input
+                        placeholder="Judul Tugas *"
+                        value={assignmentTitle}
+                        onChange={(e) => setAssignmentTitle(e.target.value)}
+                        className="admin-input"
+                      />
+                      <label className="field-label" style={{ marginTop: 8 }}>
+                        Instruksi *
+                      </label>
+                      <ReactQuill
+                        theme="snow"
+                        value={assignmentInstruksi}
+                        onChange={setAssignmentInstruksi}
+                        modules={quillModules}
+                        formats={quillFormats}
+                      />
+                      <label className="field-label" style={{ marginTop: 8 }}>
+                        Deadline *
+                      </label>
+                      <input
+                        type="datetime-local"
+                        value={assignmentDeadline}
+                        onChange={(e) => setAssignmentDeadline(e.target.value)}
+                        className="admin-input"
+                      />
+                      <div
+                        className="button-group"
+                        style={{
+                          marginTop: 16,
+                          paddingTop: 16,
+                          borderTop: "1px solid #eee",
+                        }}
+                      >
+                        <button
+                          onClick={handleAssignmentSubmit}
+                          className="admin-button"
+                        >
+                          {editingAssignment
+                            ? "💾 Update Tugas"
+                            : "💾 Simpan Tugas"}
+                        </button>
+                        {editingAssignment && (
+                          <button
+                            onClick={resetAssignmentForm}
+                            className="admin-button cancel-button"
+                          >
+                            Batal
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* List tugas */}
+                    <div className="table-card" style={{ marginTop: 16 }}>
+                      <h3>Daftar Tugas ({assignments.length})</h3>
+                      {assignments.length === 0 && (
+                        <p className="empty-hint">
+                          Belum ada tugas untuk course ini.
+                        </p>
+                      )}
+                      {assignments.map((a) => (
+                        <div key={a._id} className="nested-card">
+                          <div className="nested-card-header assignment-item-header">
+                            <span>
+                              {a.title} — Deadline:{" "}
+                              {new Date(a.deadline).toLocaleString("id-ID", {
+                                day: "numeric",
+                                month: "short",
+                                year: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </span>
+                            <div className="button-group">
+                              <button
+                                onClick={() => handleToggleSubmissions(a._id)}
+                                className="action-button edit-button"
+                              >
+                                {expandedAssignmentId === a._id
+                                  ? "▲ Tutup Submission"
+                                  : `📥 Lihat Submission (${a.submissionCount || 0})`}
+                              </button>
+                              <button
+                                onClick={() => handleEditAssignment(a)}
+                                className="action-button edit-button"
+                              >
+                                ✏️ Edit
+                              </button>
+                              <button
+                                onClick={() => handleDeleteAssignment(a._id)}
+                                className="action-button delete-button"
+                              >
+                                🗑️ Hapus
+                              </button>
+                            </div>
+                          </div>
+
+                          {expandedAssignmentId === a._id && (
+                            <div
+                              className="table-container"
+                              style={{ marginTop: 12 }}
+                            >
+                              {loadingSubmissionsFor === a._id ? (
+                                <p>Memuat submission...</p>
+                              ) : (
+                                <table className="admin-table">
+                                  <thead>
+                                    <tr>
+                                      <th>Siswa</th>
+                                      <th>File</th>
+                                      <th>Status</th>
+                                      <th>Skor</th>
+                                      <th>Feedback</th>
+                                      <th>Aksi</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    {(submissionsByAssignment[a._id] || [])
+                                      .length === 0 ? (
+                                      <tr>
+                                        <td
+                                          colSpan="6"
+                                          style={{
+                                            textAlign: "center",
+                                            color: "#a0aec0",
+                                            fontStyle: "italic",
+                                            padding: 20,
+                                          }}
+                                        >
+                                          Belum ada submission
+                                        </td>
+                                      </tr>
+                                    ) : (
+                                      submissionsByAssignment[a._id].map(
+                                        (s) => (
+                                          <tr key={s._id}>
+                                            <td>
+                                              {s.userId?.name || "—"}
+                                              <br />
+                                              <span
+                                                style={{
+                                                  fontSize: 12,
+                                                  color: "#a0aec0",
+                                                }}
+                                              >
+                                                {s.userId?.email}
+                                              </span>
+                                            </td>
+                                            <td className="assignment-files-cell">
+                                              {(s.files || []).map((f, i) => (
+                                                <div key={i}>
+                                                  <a
+                                                    href={f.url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                  >
+                                                    📎{" "}
+                                                    {f.fileName ||
+                                                      `File ${i + 1}`}
+                                                  </a>
+                                                </div>
+                                              ))}
+                                            </td>
+                                            <td>
+                                              {s.isLate ? (
+                                                <span className="status-badge late">
+                                                  Terlambat
+                                                </span>
+                                              ) : (
+                                                <span className="status-badge ontime">
+                                                  Tepat waktu
+                                                </span>
+                                              )}
+                                            </td>
+                                            <td>
+                                              <input
+                                                type="number"
+                                                min="0"
+                                                max="100"
+                                                value={
+                                                  gradeDrafts[s._id]?.score ??
+                                                  ""
+                                                }
+                                                onChange={(e) =>
+                                                  updateGradeDraft(
+                                                    s._id,
+                                                    "score",
+                                                    e.target.value,
+                                                  )
+                                                }
+                                                className="admin-input score-input"
+                                              />
+                                            </td>
+                                            <td>
+                                              <input
+                                                placeholder="Feedback (opsional)"
+                                                value={
+                                                  gradeDrafts[s._id]
+                                                    ?.feedback ?? ""
+                                                }
+                                                onChange={(e) =>
+                                                  updateGradeDraft(
+                                                    s._id,
+                                                    "feedback",
+                                                    e.target.value,
+                                                  )
+                                                }
+                                                className="admin-input"
+                                              />
+                                            </td>
+                                            <td>
+                                              <button
+                                                onClick={() =>
+                                                  handleSaveGrade(a._id, s._id)
+                                                }
+                                                className="action-button edit-button"
+                                              >
+                                                💾 Simpan
+                                              </button>
+                                            </td>
+                                          </tr>
+                                        ),
+                                      )
+                                    )}
+                                  </tbody>
+                                </table>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
       {enrollmentModalUser && (
@@ -2714,6 +3234,6 @@ const AdminPanel = () => {
       )}
     </>
   );
-};;
+};;;;
 
 export default AdminPanel;

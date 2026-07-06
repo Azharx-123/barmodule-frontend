@@ -12,6 +12,7 @@ import {
   BsPencilSquare,
   BsArrowRightCircleFill,
   BsInboxFill,
+  BsClipboardCheck,
 } from "react-icons/bs";
 import { CgCalendarDates, CgCheckO } from "react-icons/cg";
 import ReactQuill from "react-quill";
@@ -30,6 +31,7 @@ const CLASS_TAB_ICONS = {
   deskripsi: <BsFileTextFill aria-hidden="true" />,
   materi: <BsBookHalf aria-hidden="true" />,
   video: <BsFillPlayCircleFill aria-hidden="true" />,
+  tugas: <BsClipboardCheck aria-hidden="true" />,
   diskusi: <BsChatDotsFill aria-hidden="true" />,
   latihan: <BsPencilSquare aria-hidden="true" />,
 };
@@ -59,6 +61,9 @@ const CoursePage = () => {
   const [notEnrolled, setNotEnrolled] = useState(false);
   const [coursePreview, setCoursePreview] = useState(null);
   const [quiz, setQuiz] = useState(null);
+  const [assignments, setAssignments] = useState([]);
+  const [assignmentFiles, setAssignmentFiles] = useState({}); 
+  const [submittingAssignment, setSubmittingAssignment] = useState(null); 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -158,6 +163,24 @@ const CoursePage = () => {
         }
       } else {
         setQuiz(null);
+      }
+
+      // fetch tugas untuk course ini — opsional, kegagalan di sini tidak
+      // menggagalkan load course/quiz
+      try {
+        const assignmentsRes = await fetch(
+          `${API_BASE_URL}/assignments/course/${courseData._id}`,
+          { headers: token ? { Authorization: `Bearer ${token}` } : {} },
+        );
+        if (assignmentsRes.ok) {
+          const assignmentsData = await assignmentsRes.json();
+          setAssignments(Array.isArray(assignmentsData) ? assignmentsData : []);
+        } else {
+          setAssignments([]);
+        }
+      } catch (e) {
+        console.error("Gagal memuat tugas:", e);
+        setAssignments([]);
       }
     } catch (e) {
       setError("Terjadi kesalahan saat memuat data.");
@@ -520,6 +543,51 @@ const CoursePage = () => {
     });
   };
 
+  const handleAssignmentFileChange = (assignmentId, fileList) => {
+    setAssignmentFiles((prev) => ({
+      ...prev,
+      [assignmentId]: Array.from(fileList),
+    }));
+  };
+
+  const handleSubmitAssignment = async (assignmentId) => {
+    const files = assignmentFiles[assignmentId];
+    if (!files || files.length === 0) {
+      alert("Pilih minimal 1 file untuk dikumpulkan");
+      return;
+    }
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    setSubmittingAssignment(assignmentId);
+    try {
+      const formData = new FormData();
+      files.forEach((file) => formData.append("files", file));
+
+      const res = await fetch(
+        `${API_BASE_URL}/assignments/${assignmentId}/submit`,
+        {
+          method: "POST",
+          // JANGAN set Content-Type manual — browser yang mengatur boundary multipart
+          headers: { Authorization: `Bearer ${token}` },
+          body: formData,
+        },
+      );
+      const data = await res.json();
+      if (res.ok) {
+        alert(data.message);
+        setAssignmentFiles((prev) => ({ ...prev, [assignmentId]: null }));
+        fetchData(); // refresh supaya status/submission terbaru muncul
+      } else {
+        alert(data.message || "Gagal mengumpulkan tugas");
+      }
+    } catch (e) {
+      alert("Terjadi kesalahan saat mengumpulkan tugas: " + e.message);
+    } finally {
+      setSubmittingAssignment(null);
+    }
+  };
+
   const quillModules = {
     toolbar: [
       [{ header: [1, 2, false] }],
@@ -619,6 +687,7 @@ const CoursePage = () => {
     { key: "deskripsi", label: "Deskripsi Kelas" },
     { key: "materi", label: "Materi" },
     ...(course.videos?.length > 0 ? [{ key: "video", label: "Video" }] : []),
+    ...(assignments.length > 0 ? [{ key: "tugas", label: "Tugas" }] : []),
     { key: "diskusi", label: "Forum Diskusi" },
     ...(quiz ? [{ key: "latihan", label: "Latihan" }] : []),
   ];
@@ -1286,6 +1355,112 @@ const CoursePage = () => {
                         ))}
                     </div>
                   )}
+
+{/* ── Tugas ── */}
+{tab.key === "tugas" && (
+  <div className="assignment-tab">
+    {assignments.length === 0 ? (
+      <p className="empty-content">
+        <BsInboxFill aria-hidden="true" />
+        Belum ada tugas untuk course ini.
+      </p>
+    ) : (
+      assignments.map((a) => {
+        const sub = a.mySubmission;
+        return (
+          <div key={a._id} className="assignment-card">
+            <div className="assignment-header">
+              <h4>{a.title}</h4>
+              <span className="assignment-deadline">
+                <CgCalendarDates aria-hidden="true" /> Deadline:{" "}
+                {new Date(a.deadline).toLocaleString("id-ID", {
+                  day: "numeric",
+                  month: "short",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </span>
+            </div>
+
+            <div
+              className="ql-editor assignment-instruksi"
+              dangerouslySetInnerHTML={{ __html: a.instruksi }}
+            />
+
+            {sub ? (
+              <div className="assignment-submission-status">
+                <span
+                  className={`assignment-badge ${sub.isLate ? "late" : "ontime"}`}
+                >
+                  {sub.isLate ? "Terlambat" : "Sudah Dikumpulkan"}
+                </span>
+                <div className="assignment-files-list">
+                  {(sub.files || []).map((f, i) => (
+                    <a
+                      key={i}
+                      href={f.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      📎 {f.fileName || `File ${i + 1}`}
+                    </a>
+                  ))}
+                </div>
+                {sub.score !== null && sub.score !== undefined && (
+                  <div className="assignment-grade">
+                    <p>
+                      <BsFillCheckCircleFill aria-hidden="true" /> Nilai:{" "}
+                      <strong>{sub.score}</strong>
+                    </p>
+                    {sub.feedback && (
+                      <p className="assignment-feedback">
+                        <CgCheckO aria-hidden="true" /> {sub.feedback}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <span className="assignment-badge notsubmitted">
+                Belum Submit
+              </span>
+            )}
+
+            <div className="assignment-upload-form">
+              <input
+                type="file"
+                multiple
+                onChange={(e) =>
+                  handleAssignmentFileChange(a._id, e.target.files)
+                }
+              />
+              <p className="assignment-upload-hint">
+                Maks. 2MB per file. Format: PDF, Word, Excel, PowerPoint, ZIP,
+                atau gambar (JPG/PNG).
+              </p>
+              <button
+                onClick={() => handleSubmitAssignment(a._id)}
+                disabled={submittingAssignment === a._id}
+                className="submit-button"
+              >
+                {submittingAssignment === a._id ? (
+                  "Mengupload..."
+                ) : (
+                  <>
+                    {sub ? "Submit Ulang" : "Kumpulkan Tugas"}{" "}
+                    <BsArrowRightCircleFill aria-hidden="true" />
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        );
+      })
+    )}
+  </div>
+)}
+                  
                 </TabPanel>
               ))}
             </Tabs>
