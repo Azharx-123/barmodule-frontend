@@ -1,15 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import api from "../services/api";
-import { BiMenu } from "react-icons/bi";
+import { BiMenu, BiSearch } from "react-icons/bi";
 import { AiOutlineClose } from "react-icons/ai";
-import { BiSearch } from "react-icons/bi";
 import { FaUser } from "react-icons/fa";
 import Image1 from "../assets/images/logounj.png";
 import Image2 from "../assets/images/logosmk7.png";
 import "../css/Navbar.css";
 
-// Data statis untuk modal Explore (di luar "Materi" — halaman umum seperti About)
 const searchData = [
   {
     category: "About",
@@ -41,9 +39,6 @@ function Navbar() {
   );
   const [avatarError, setAvatarError] = useState(false);
 
-  // ─── Daftar course dinamis untuk dropdown "Materi" ─────────────────────────
-  // Menggantikan link statis Tatarias/Salon/Treatment/Hairstyle — sekarang
-  // diambil langsung dari database sesuai title & slug course masing-masing.
   const [navCourses, setNavCourses] = useState([]);
   const [navCoursesLoaded, setNavCoursesLoaded] = useState(false);
 
@@ -56,7 +51,6 @@ function Navbar() {
     setAvatarError(false);
   }, [userAvatar]);
 
-  // Ambil daftar course untuk dropdown Materi (public, tidak perlu token)
   useEffect(() => {
     api
       .get("/courses")
@@ -71,7 +65,6 @@ function Navbar() {
       .finally(() => setNavCoursesLoaded(true));
   }, []);
 
-  // Check login status
   useEffect(() => {
     const token = localStorage.getItem("token");
     const name = localStorage.getItem("userName");
@@ -81,11 +74,9 @@ function Navbar() {
       setIsLoggedIn(true);
       setUserName(name || "User");
       setUserRole(role || "user");
-      // tampilkan avatar dari cache dulu biar gak kedip
       const cachedAvatar = localStorage.getItem("userAvatar");
       if (cachedAvatar) setUserAvatar(cachedAvatar);
 
-      // lalu ambil yang terbaru dari server
       api
         .get("/users/profile")
         .then((res) => {
@@ -124,9 +115,20 @@ function Navbar() {
         setShowUserMenu(false);
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Auto-tutup drawer mobile kalau layar dilebarin ke ukuran desktop
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth > 900) {
+        setMobileMenuOpen(false);
+        setMateriOpen(false);
+      }
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   const toggleMobileMenu = () => {
@@ -134,41 +136,45 @@ function Navbar() {
     setMateriOpen(false);
   };
 
-  const isActive = (path) => location.pathname === path;
-
-useEffect(() => {
-  // Jika sedang di halaman admin, jangan aktifkan efek scroll
-  if (isAtAdmin) {
-    setScrolled(false);
-    return;
-  }
-
-  const handleScroll = () => {
-    setScrolled(window.scrollY > 50);
+  const closeMobileMenu = () => {
+    setMobileMenuOpen(false);
+    setMateriOpen(false);
   };
 
-  // Jalankan sekali saat pertama render
-  handleScroll();
+  const isActive = (path) => location.pathname === path;
 
-  window.addEventListener("scroll", handleScroll);
-
-  return () => window.removeEventListener("scroll", handleScroll);
-}, [isAtAdmin]);
+  useEffect(() => {
+    if (isAtAdmin) {
+      setScrolled(false);
+      return;
+    }
+    const handleScroll = () => setScrolled(window.scrollY > 50);
+    handleScroll();
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [isAtAdmin]);
 
   useEffect(() => {
     if (exploreOpen) {
       document.body.style.overflow = "hidden";
       searchRef.current?.focus();
-    } else {
+    } else if (!mobileMenuOpen) {
       document.body.style.overflow = "unset";
     }
-
     return () => {
-      document.body.style.overflow = "unset";
+      if (!mobileMenuOpen) document.body.style.overflow = "unset";
     };
-  }, [exploreOpen]);
+  }, [exploreOpen, mobileMenuOpen]);
 
-  // ─── Search di modal Explore: gabungkan data statis (About) + course dinamis ──
+  // Kunci scroll body juga saat drawer mobile terbuka
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = "hidden";
+    } else if (!exploreOpen) {
+      document.body.style.overflow = "unset";
+    }
+  }, [mobileMenuOpen, exploreOpen]);
+
   useEffect(() => {
     if (searchTerm) {
       const combinedData = [
@@ -184,7 +190,6 @@ useEffect(() => {
         const matchingKeywords = category.keywords.filter((keyword) =>
           keyword.toLowerCase().includes(searchTerm.toLowerCase()),
         );
-
         if (matchingKeywords.length > 0) {
           acc.push({
             category: category.category,
@@ -216,54 +221,65 @@ useEffect(() => {
   const NavLinks = ({ mobile = false }) => (
     <ul className={`nav-links ${mobile ? "mobile" : ""}`}>
       <li>
-        <a href="/" className={isActive("/") ? "active-link" : ""}>
+        <a
+          href="/"
+          className={isActive("/") ? "active-link" : ""}
+          onClick={mobile ? closeMobileMenu : undefined}
+        >
           Home
         </a>
       </li>
       <li>
-        <a href="/about" className={isActive("/about") ? "active-link" : ""}>
+        <a
+          href="/about"
+          className={isActive("/about") ? "active-link" : ""}
+          onClick={mobile ? closeMobileMenu : undefined}
+        >
           About
         </a>
       </li>
       <li className={`dropdown ${mobile && materiOpen ? "dropdown-open" : ""}`}>
-  <span onClick={mobile ? () => setMateriOpen((prev) => !prev) : undefined}>
-    Materi
-  </span>
-  <ul className="dropdown-menu">
-    {!navCoursesLoaded ? (
-      <li>
-        <span style={{ opacity: 0.6, cursor: "default" }}>Memuat...</span>
+        <span
+          onClick={mobile ? () => setMateriOpen((prev) => !prev) : undefined}
+          aria-expanded={mobile ? materiOpen : undefined}
+        >
+          Materi
+        </span>
+        <ul className="dropdown-menu">
+          {!navCoursesLoaded ? (
+            <li>
+              <span style={{ opacity: 0.6, cursor: "default" }}>Memuat...</span>
+            </li>
+          ) : navCourses.length > 0 ? (
+            navCourses.map((course) => (
+              <li key={course._id}>
+                <a
+                  href={`/belajar/${course.slug}`}
+                  className={isActive(`/belajar/${course.slug}`) ? "active-link" : ""}
+                  onClick={() => {
+                    setMateriOpen(false);
+                    setMobileMenuOpen(false);
+                  }}
+                >
+                  {course.title}
+                </a>
+              </li>
+            ))
+          ) : (
+            <li>
+              <span style={{ opacity: 0.6, cursor: "default" }}>Belum ada kelas</span>
+            </li>
+          )}
+        </ul>
       </li>
-    ) : navCourses.length > 0 ? (
-      navCourses.map((course) => (
-        <li key={course._id}>
-          <a
-            href={`/belajar/${course.slug}`}
-            className={isActive(`/belajar/${course.slug}`) ? "active-link" : ""}
-            onClick={() => {
-              setMateriOpen(false);
-              setMobileMenuOpen(false);
-            }}
-          >
-            {course.title}
-          </a>
-        </li>
-      ))
-    ) : (
-      <li>
-        <span style={{ opacity: 0.6, cursor: "default" }}>Belum ada kelas</span>
-      </li>
-    )}
-  </ul>
-</li>
       <li>
         <a
           onClick={(e) => {
             e.preventDefault();
             setExploreOpen(true);
+            if (mobile) closeMobileMenu();
           }}
           href="#explore"
-          className={isActive("/#explore") ? "active-link" : ""}
           style={{ cursor: "pointer" }}
         >
           Explore
@@ -281,14 +297,12 @@ useEffect(() => {
             <img src={Image2} alt="Logo SMK7" width={70} />
           </div>
 
-          {/* Desktop Navigation */}
           {!isAtAdmin && (
             <div className="navbar-menu desktop-menu">
               <NavLinks />
             </div>
           )}
 
-          {/* Auth Section */}
           <div className="navbar-auth">
             {isLoggedIn ? (
               <div
@@ -359,31 +373,95 @@ useEffect(() => {
             )}
           </div>
 
-          {/* Mobile Menu Button */}
           <button
             className="mobile-menu-button"
             onClick={toggleMobileMenu}
             aria-label="Toggle menu"
+            aria-expanded={mobileMenuOpen}
           >
             {mobileMenuOpen ? (
-              <AiOutlineClose size={30} color="#FF33FC" />
+              <AiOutlineClose size={26} color="#FF33FC" />
             ) : (
-              <BiMenu size={30} color="#FF33FC" />
+              <BiMenu size={26} color="#FF33FC" />
             )}
           </button>
         </div>
+
+        {/* Backdrop mobile drawer */}
+        <div
+          className={`navbar-mobile-overlay ${mobileMenuOpen ? "active" : ""}`}
+          onClick={closeMobileMenu}
+        />
 
         {/* Mobile Navigation */}
         <div className={`navbar-mobile ${mobileMenuOpen ? "active" : ""}`}>
           <NavLinks mobile={true} />
 
-          {/* Mobile Auth */}
+          {isLoggedIn && (
+            <div className="mobile-user-section">
+              <div className="mobile-user-info">
+                {userAvatar && !avatarError ? (
+                  <img
+                    src={userAvatar}
+                    alt={userName}
+                    className="navbar-avatar mobile-user-avatar"
+                    onError={() => setAvatarError(true)}
+                  />
+                ) : (
+                  <div className="navbar-avatar navbar-avatar-initials mobile-user-avatar">
+                    {getInitials(userName)}
+                  </div>
+                )}
+                <div className="mobile-user-text">
+                  <p className="mobile-user-name">{userName}</p>
+                  <p className="mobile-user-role">{userRole}</p>
+                </div>
+              </div>
+
+              {(userRole === "admin" || userRole === "teacher") && (
+                <Link
+                  to={isAtAdmin ? "/" : "/admin"}
+                  className="admin-toggle-btn mobile-admin-toggle-btn"
+                  onClick={closeMobileMenu}
+                >
+                  {isAtAdmin ? "🏠 Halaman Utama" : "🛠️ Admin Panel"}
+                </Link>
+              )}
+
+              <Link
+                to="/profile"
+                className="dropdown-link"
+                onClick={closeMobileMenu}
+              >
+                <FaUser /> Profil Saya
+              </Link>
+
+              <button
+                onClick={() => {
+                  handleLogout();
+                  closeMobileMenu();
+                }}
+                className="dropdown-link logout"
+              >
+                🚪 Logout
+              </button>
+            </div>
+          )}
+
           {!isLoggedIn && (
             <div className="mobile-auth">
-              <Link to="/login" className="mobile-login-btn">
+              <Link
+                to="/login"
+                className="mobile-login-btn"
+                onClick={closeMobileMenu}
+              >
                 Login
               </Link>
-              <Link to="/register" className="mobile-register-btn">
+              <Link
+                to="/register"
+                className="mobile-register-btn"
+                onClick={closeMobileMenu}
+              >
                 Daftar
               </Link>
             </div>
@@ -393,8 +471,11 @@ useEffect(() => {
 
       {/* Explore Search Modal */}
       {exploreOpen && (
-        <div className="explore-modal-overlay">
-          <div className="explore-modal">
+        <div
+          className="explore-modal-overlay"
+          onClick={() => setExploreOpen(false)}
+        >
+          <div className="explore-modal" onClick={(e) => e.stopPropagation()}>
             <div className="explore-modal-header">
               <div className="explore-search-container">
                 <BiSearch className="explore-search-icon" />
@@ -410,7 +491,7 @@ useEffect(() => {
                   onClick={() => setExploreOpen(false)}
                   className="explore-close-button"
                 >
-                  <AiOutlineClose size={20} />
+                  <AiOutlineClose size={18} />
                 </button>
               </div>
             </div>

@@ -168,33 +168,98 @@
   background-color: var(--color-primary-light);
 }
 /* ── Responsive ───────────────────────────────────────────── */
+/* Tambahkan ini di dekat .image-main-container agar gambar tidak overflow
+   sebelum breakpoint tercapai (mengatasi width={600} inline di JSX) */
+.image-main-container img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* ── Responsive ───────────────────────────────────────────── */
+
+/* Tablet & di bawahnya: gambar disembunyikan, teks jadi center */
 @media screen and (max-width: 1050px) {
+  .main-section-container {
+    justify-content: center;
+    padding: 40px 30px;
+    box-sizing: border-box;
+  }
   .image-main-container {
     display: none;
   }
-}
-@media screen and (max-width: 500px) {
   .text-main-container {
-    margin-left: 20px;
+    text-align: center;
+  }
+  .main-title,
+  .main-subtitle {
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .button-container {
+    justify-content: center;
+  }
+}
+
+/* Tablet kecil / HP besar */
+@media screen and (max-width: 768px) {
+  .main-title {
+    font-size: 42px;
+    line-height: 48px;
+  }
+  .main-subtitle {
+    font-size: 16px;
+    max-width: 450px;
+  }
+  .button-container {
+    margin-top: 30px;
+  }
+}
+
+/* Mobile */
+@media screen and (max-width: 500px) {
+  .main-section-container {
+    padding: 30px 20px;
+  }
+  .text-main-container {
+    margin-left: 0;
   }
   .main-title {
-    font-size: 50px;
-    line-height: 50px;
+    font-size: 32px;
+    line-height: 38px;
+    max-width: 100%;
   }
   .main-subtitle {
     font-size: 14px;
-    max-width: 250px;
+    max-width: 100%;
+  }
+  .button-container {
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
   }
   .button-main {
-    padding: 10px 15px;
-    margin: 1px 2px;
-    margin-bottom: 20px;
+    width: 100%;
+    max-width: 280px;
+    box-sizing: border-box;
+    padding: 12px 15px;
+    margin: 0;
+  }
+  .button-tonton {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
   }
   .play-tonton .circle {
     margin-left: 0;
   }
-  .button-container {
-    flex-direction: column;
-    align-items: flex-start;
+}
+
+/* HP kecil, misal iPhone SE */
+@media screen and (max-width: 360px) {
+  .main-title {
+    font-size: 28px;
+    line-height: 34px;
   }
 }

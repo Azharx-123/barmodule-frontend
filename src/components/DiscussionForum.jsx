@@ -1,10 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import { FiSend, FiTrash2 } from "react-icons/fi";
+import { API_BASE_URL } from "../services/api";
 import "../css/DiscussionForum.css";
 
-const API_URL = "http://localhost:5000/api";
-const SOCKET_URL = "http://localhost:5000";
+const SOCKET_URL = process.env.REACT_APP_SOCKET_URL || "http://localhost:5000";
 
 // Label & style badge per role — HANYA role yang memang ada di backend (User.role enum: "admin", "user")
 const ROLE_LABELS = {
@@ -36,7 +36,7 @@ const DiscussionForum = ({ courseId }) => {
     setLoading(true);
     setError("");
 
-    fetch(`${API_URL}/discussion/${courseId}`, {
+    fetch(`${API_BASE_URL}/discussion/${courseId}`, {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     })
       .then(async (res) => {

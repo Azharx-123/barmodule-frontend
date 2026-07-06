@@ -150,7 +150,7 @@ function Contact() {
 
           {formStatus.success && (
             <p className="form-feedback form-feedback--success">
-              ✅ Pesan berhasil dikirim ke info@smkn7tangsel.sch.id!
+              ✅ Pesan berhasil dikirim ke ahmadazharx@gmail.com!
             </p>
           )}
           {formStatus.error && (

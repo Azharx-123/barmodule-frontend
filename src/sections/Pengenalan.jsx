@@ -44,7 +44,7 @@ function Pengenalan({ scrollToService }) {
                 <BsFillPlayFill size={25} />
               </Link>
             </div>
-            <span className="tonton">Tonton Video</span>
+            <span className="tonton">Tonton Video Cara Pemakaian LMS</span>
           </div>
         </div>
       </div>

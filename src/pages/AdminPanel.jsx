@@ -1,11 +1,9 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
-
+import { API_BASE_URL } from "../services/api";
 import "../css/AdminPanel.css";
 import ImageUpload from "../components/ImageUpload";
-
-const API_URL = "http://localhost:5000/api";
 
 // ─── Factory helpers untuk state awal ──────────────────────────────────────
 const emptyMC = () => ({
@@ -152,7 +150,7 @@ const AdminPanel = () => {
         const payload = JSON.stringify({ imageUrl, token });
         // text/plain, BUKAN application/json — menghindari CORS preflight untuk sendBeacon lintas origin
         const blob = new Blob([payload], { type: "text/plain" });
-        navigator.sendBeacon(`${API_URL}/upload/image/beacon`, blob);
+        navigator.sendBeacon(`${API_BASE_URL}/upload/image/beacon`, blob);
       });
     };
 
@@ -163,7 +161,7 @@ const AdminPanel = () => {
   // ─── Fetch Functions ──────────────────────────────────────────────────────
   const fetchStats = useCallback(async () => {
     try {
-      const res = await fetch(`${API_URL}/admin/stats`, {
+      const res = await fetch(`${API_BASE_URL}/admin/stats`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -181,7 +179,7 @@ const AdminPanel = () => {
 
   const fetchCourses = useCallback(async () => {
     try {
-      const res = await fetch(`${API_URL}/courses`);
+      const res = await fetch(`${API_BASE_URL}/courses`);
       const data = await res.json();
       if (!res.ok) {
         console.error("fetchCourses failed:", data?.message || res.status);
@@ -197,7 +195,7 @@ const AdminPanel = () => {
 
   const fetchContacts = useCallback(async () => {
     try {
-      const res = await fetch(`${API_URL}/contact`, {
+      const res = await fetch(`${API_BASE_URL}/contact`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -215,7 +213,7 @@ const AdminPanel = () => {
 
   const fetchUsers = useCallback(async () => {
     try {
-      const res = await fetch(`${API_URL}/admin/users`, {
+      const res = await fetch(`${API_BASE_URL}/admin/users`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -240,7 +238,7 @@ const AdminPanel = () => {
 
   const fetchQuizResults = useCallback(async () => {
     try {
-      const res = await fetch(`${API_URL}/admin/quiz-results`, {
+      const res = await fetch(`${API_BASE_URL}/admin/quiz-results`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -356,8 +354,8 @@ const AdminPanel = () => {
       };
 
       const url = editingCourse
-        ? `${API_URL}/courses/${editingCourse._id}`
-        : `${API_URL}/courses`;
+        ? `${API_BASE_URL}/courses/${editingCourse._id}`
+        : `${API_BASE_URL}/courses`;
       const method = editingCourse ? "PUT" : "POST";
 
       const res = await fetch(url, {
@@ -389,7 +387,7 @@ const AdminPanel = () => {
     )
       return;
     try {
-      const res = await fetch(`${API_URL}/courses/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/courses/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -420,7 +418,7 @@ const AdminPanel = () => {
     if (!imageUrl) return;
     const authToken = localStorage.getItem("token");
     try {
-      await fetch(`${API_URL}/upload/image`, {
+      await fetch(`${API_BASE_URL}/upload/image`, {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
@@ -798,7 +796,7 @@ const AdminPanel = () => {
 
   const updateContactStatus = async (id, status) => {
     try {
-      await fetch(`${API_URL}/contact/${id}`, {
+      await fetch(`${API_BASE_URL}/contact/${id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -816,7 +814,7 @@ const AdminPanel = () => {
   const handleDeleteContact = async (id) => {
     if (!window.confirm("Yakin ingin menghapus pesan ini?")) return;
     try {
-      const res = await fetch(`${API_URL}/admin/contacts/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/admin/contacts/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -846,7 +844,7 @@ const AdminPanel = () => {
         : "Yakin jadikan user ini Siswa kembali?";
     if (!window.confirm(confirmMsg)) return;
     try {
-      const res = await fetch(`${API_URL}/admin/users/${id}/role`, {
+      const res = await fetch(`${API_BASE_URL}/admin/users/${id}/role`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -872,7 +870,7 @@ const AdminPanel = () => {
     if (!enrollmentModalUser) return;
     try {
       const res = await fetch(
-        `${API_URL}/admin/users/${enrollmentModalUser._id}/enrollment`,
+        `${API_BASE_URL}/admin/users/${enrollmentModalUser._id}/enrollment`,
         {
           method: "PUT",
           headers: {
@@ -901,7 +899,7 @@ const AdminPanel = () => {
   const handleDeleteUser = async (id) => {
     if (!window.confirm("Yakin ingin menghapus user ini?")) return;
     try {
-      const res = await fetch(`${API_URL}/admin/users/${id}`, {
+      const res = await fetch(`${API_BASE_URL}/admin/users/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -927,7 +925,7 @@ const AdminPanel = () => {
     setLoadingQuiz(true);
     setQuizLoaded(false);
     try {
-      const res = await fetch(`${API_URL}/quiz/course/${quizCourseId}`, {
+      const res = await fetch(`${API_BASE_URL}/quiz/course/${quizCourseId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
@@ -966,7 +964,7 @@ const AdminPanel = () => {
     }));
 
     try {
-      const res = await fetch(`${API_URL}/quiz`, {
+      const res = await fetch(`${API_BASE_URL}/quiz`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -1000,7 +998,7 @@ const AdminPanel = () => {
     )
       return;
     try {
-      const res = await fetch(`${API_URL}/admin/quizzes/${existingQuizId}`, {
+      const res = await fetch(`${API_BASE_URL}/admin/quizzes/${existingQuizId}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });

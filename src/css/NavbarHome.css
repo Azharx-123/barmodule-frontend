@@ -1,3 +1,5 @@
+/* NavbarHome.css */
+
 .navbar-home {
   position: absolute;
   top: 0;
@@ -6,33 +8,55 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 3rem 1.5rem;
-  background-color: rgba(255, 255, 255, 0.315);
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  z-index: 1;
+  min-height: clamp(72px, 10vw, 100px); /* NEW — kasih tinggi minimum yang
+     pasti, biar centering logo nggak ngitung dari kotak yang collapse */
+  padding: 0.5rem clamp(1rem, 3vw, 2rem);
+  background: rgba(6, 4, 6, 0.4);
+  backdrop-filter: blur(10px) saturate(140%);
+  -webkit-backdrop-filter: blur(10px) saturate(140%);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
+  z-index: 20;
+}
+
+.navbar-home::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: linear-gradient(90deg,
+      transparent,
+      var(--primary-color, #fe3efb),
+      transparent);
+  opacity: 0.75;
+  pointer-events: none;
 }
 
 .art {
   width: 20vh;
   height: auto;
+  filter: drop-shadow(0 0 6px rgba(254, 62, 251, 0.25));
 }
 
+/* selalu nempel pas di pojok atas layar, tidak digeser vertikal */
 .art-left {
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
 }
 
 .art-right {
-  position: fixed;
+  position: absolute;
   top: 0;
   right: 0;
 }
 
 .navbar-logos {
   position: absolute;
+  top: 50%;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translate(-50%, -50%);
   display: flex;
   gap: 2rem;
   align-items: center;
@@ -41,27 +65,31 @@
 .navbar-logos img {
   width: 70px;
   height: auto;
+  transition: transform var(--transition-base, 0.25s ease);
+}
+
+.navbar-logos img:hover {
+  transform: translateY(-3px) scale(1.05);
 }
 
 @media screen and (max-width: 768px) {
   .navbar-home {
     flex-direction: column;
-    padding: 1rem;
+    gap: 0.75rem;
     justify-content: center;
   }
 
   .art {
-    width: 15vh;
+    width: 12vh;
   }
 
   .navbar-logos {
     position: relative;
-    /* Ubah ke relative agar tetap di tengah */
+    top: auto;
     left: 0;
     transform: none;
     width: 100%;
     justify-content: center;
-    /* Pastikan konten tetap di tengah */
     gap: 1rem;
   }
 
@@ -71,12 +99,8 @@
 }
 
 @media screen and (max-width: 480px) {
-  .navbar-home {
-    padding: 0.5rem;
-  }
-
   .art {
-    width: 10vh;
+    width: 9vh;
   }
 
   .navbar-logos {
@@ -85,5 +109,11 @@
 
   .navbar-logos img {
     width: 40px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .navbar-logos img {
+    transition: none;
   }
 }

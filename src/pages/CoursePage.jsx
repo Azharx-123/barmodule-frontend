@@ -20,12 +20,11 @@ import { Tab, TabList, TabPanel, Tabs } from "react-tabs";
 import "react-tabs/style/react-tabs.css";
 import YouTube from "react-youtube";
 import { useParams, useNavigate } from "react-router-dom";
+import { API_BASE_URL } from "../services/api";
 import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
 import DiscussionForum from "../components/DiscussionForum";
 import "../css/CoursePage.css";
-
-const API_URL = "http://localhost:5000/api";
 
 // Ikon untuk setiap tab Class Course — murni presentasional, memudahkan
 // siswa mengenali jenis konten dari sekilas pandang.
@@ -106,7 +105,7 @@ const CoursePage = () => {
     setError(null);
     const token = localStorage.getItem("token");
     try {
-      const courseRes = await fetch(`${API_URL}/courses/${slug}`, {
+      const courseRes = await fetch(`${API_BASE_URL}/courses/${slug}`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
 
@@ -138,14 +137,14 @@ const CoursePage = () => {
       setCourse(courseData);
 
       // fetch quiz (boleh 404, berarti belum ada quiz)
-      const quizRes = await fetch(`${API_URL}/quiz/course/${courseData._id}`);
+      const quizRes = await fetch(`${API_BASE_URL}/quiz/course/${courseData._id}`);
       if (quizRes.ok) {
         const quizData = await quizRes.json();
         setQuiz(quizData);
 
         if (token) {
           const resultRes = await fetch(
-            `${API_URL}/quiz/result/${courseData._id}`,
+            `${API_BASE_URL}/quiz/result/${courseData._id}`,
             {
               headers: { Authorization: `Bearer ${token}` },
             },
@@ -487,7 +486,7 @@ const CoursePage = () => {
       const token = localStorage.getItem("token");
       if (!token) return;
       try {
-        await fetch(`${API_URL}/quiz/submit`, {
+        await fetch(`${API_BASE_URL}/quiz/submit`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -503,7 +502,7 @@ const CoursePage = () => {
         });
 
         // ⬅️ tambahan: progress di enrolledCourses = skor quiz itu sendiri
-        await fetch(`${API_URL}/users/progress/${course._id}`, {
+        await fetch(`${API_BASE_URL}/users/progress/${course._id}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
@@ -527,13 +526,13 @@ const CoursePage = () => {
   const token = localStorage.getItem("token");
   if (token && course?._id) {
     try {
-      await fetch(`${API_URL}/quiz/result/${course._id}`, {
+      await fetch(`${API_BASE_URL}/quiz/result/${course._id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
 
       // ⬅️ tambahan: samakan progress balik ke 0 setelah reset
-      await fetch(`${API_URL}/users/progress/${course._id}`, {
+      await fetch(`${API_BASE_URL}/users/progress/${course._id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
