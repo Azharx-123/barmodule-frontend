@@ -110,7 +110,7 @@ const handleAvatarUploadSuccess = (newAvatarUrl) => {
               {new Date(user?.createdAt).toLocaleDateString()}
             </p>
           </div>
-          {user?.role !== "admin" && user?.role !== "guru" && (
+          {user?.role !== "admin" && user?.role !== "teacher" && (
             <div className="info-card">
               <h2>Course yang Diikuti</h2>
               {user?.enrolledCourses?.length > 0 ? (
