@@ -134,7 +134,9 @@ const CoursePage = () => {
       setCourse(courseData);
 
       // fetch quiz (boleh 404, berarti belum ada quiz)
-      const quizRes = await fetch(`${API_BASE_URL}/quiz/course/${courseData._id}`);
+      const quizRes = await fetch(
+        `${API_BASE_URL}/quiz/course/${courseData._id}`,
+      );
       if (quizRes.ok) {
         const quizData = await quizRes.json();
         setQuiz(quizData);
@@ -186,88 +188,40 @@ const CoursePage = () => {
     }, 1000);
   }, [stopTimeUpdate]);
 
-  useEffect(() => {
-  if (!course?.videoUrl) return;
-
-  const heroVideoId = extractYouTubeId(course.videoUrl);
-  console.log("[HERO DEBUG] effect running, videoUrl:", course.videoUrl, "heroVideoId:", heroVideoId);
-  if (!heroVideoId) return;
-
-  const onPlayerReady = (event) => {
-    console.log("[HERO DEBUG] onPlayerReady fired!");
+  // ─── Hero YouTube player handlers (react-youtube) ──────────────────────────
+  const onHeroPlayerReady = useCallback((event) => {
     heroVideoRef.current = event.target;
     setHeroDuration(event.target.getDuration());
     setIsHeroVideoReady(true);
-  };
+  }, []);
 
-  const onPlayerStateChange = (event) => {
-    if (event.data === window.YT?.PlayerState?.PLAYING) {
-      setIsHeroPlaying(true);
-      startTimeUpdate();
-    } else if (event.data === window.YT?.PlayerState?.PAUSED) {
-      setIsHeroPlaying(false);
+  const onHeroPlayerStateChange = useCallback(
+    (event) => {
+      if (event.data === window.YT?.PlayerState?.PLAYING) {
+        setIsHeroPlaying(true);
+        startTimeUpdate();
+      } else if (event.data === window.YT?.PlayerState?.PAUSED) {
+        setIsHeroPlaying(false);
+        stopTimeUpdate();
+      } else if (event.data === window.YT?.PlayerState?.ENDED) {
+        setIsHeroPlaying(false);
+        stopTimeUpdate();
+        setHeroCurrentTime(0);
+      }
+    },
+    [startTimeUpdate, stopTimeUpdate],
+  );
+
+  // Reset state hero player saat video/course berganti atau komponen unmount
+  useEffect(() => {
+    return () => {
       stopTimeUpdate();
-    }
-  };
-
-  const initializeYouTubePlayer = () => {
-    console.log("[HERO DEBUG] initializeYouTubePlayer called");
-    console.log("[HERO DEBUG] div exists right now?", document.getElementById("youtube-player"));
-
-    if (
-      heroVideoRef.current &&
-      typeof heroVideoRef.current.destroy === "function"
-    ) {
-      heroVideoRef.current.destroy();
-    }
-    heroVideoRef.current = new window.YT.Player("youtube-player", {
-      height: "100%",
-      width: "100%",
-      videoId: heroVideoId,
-      playerVars: {
-        autoplay: 0,
-        controls: 0,
-        modestbranding: 1,
-        rel: 0,
-        showinfo: 0,
-        fs: 0,
-      },
-      events: { onReady: onPlayerReady, onStateChange: onPlayerStateChange },
-    });
-    console.log("[HERO DEBUG] YT.Player instance created:", heroVideoRef.current);
-  };
-
-  console.log("[HERO DEBUG] window.YT exists?", !!window.YT, "window.YT.Player exists?", !!window.YT?.Player);
-
-  if (window.YT && window.YT.Player) {
-    initializeYouTubePlayer();
-  } else {
-    console.log("[HERO DEBUG] loading iframe_api script...");
-    const tag = document.createElement("script");
-    tag.src = "https://www.youtube.com/iframe_api";
-    const firstScriptTag = document.getElementsByTagName("script")[0];
-    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-    window.onYouTubeIframeAPIReady = () => {
-      console.log("[HERO DEBUG] onYouTubeIframeAPIReady fired!");
-      initializeYouTubePlayer();
+      setIsHeroPlaying(false);
+      setIsHeroVideoReady(false);
+      setHeroCurrentTime(0);
+      setHeroDuration(0);
     };
-  }
-
-  return () => {
-    console.log("[HERO DEBUG] cleanup running");
-    stopTimeUpdate();
-    if (
-      heroVideoRef.current &&
-      typeof heroVideoRef.current.destroy === "function"
-    ) {
-      heroVideoRef.current.destroy();
-      heroVideoRef.current = null;
-    }
-    setIsHeroPlaying(false);
-    setIsHeroVideoReady(false);
-    setHeroCurrentTime(0);
-  };
-}, [course?.videoUrl, startTimeUpdate, stopTimeUpdate]);
+  }, [course?.videoUrl, stopTimeUpdate]);
 
   // ─── Hero video controls ──────────────────────────────────────────────────
   const handleHeroPlayPause = useCallback(() => {
@@ -532,27 +486,27 @@ const CoursePage = () => {
   };
 
   const handleConfirmReset = async () => {
-  const token = localStorage.getItem("token");
-  if (token && course?._id) {
-    try {
-      await fetch(`${API_BASE_URL}/quiz/result/${course._id}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
+    const token = localStorage.getItem("token");
+    if (token && course?._id) {
+      try {
+        await fetch(`${API_BASE_URL}/quiz/result/${course._id}`, {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
-      // ⬅️ tambahan: samakan progress balik ke 0 setelah reset
-      await fetch(`${API_BASE_URL}/users/progress/${course._id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ progress: 0 }),
-      });
-    } catch (e) {
-      console.error("Gagal menghapus hasil quiz di server:", e);
+        // ⬅️ tambahan: samakan progress balik ke 0 setelah reset
+        await fetch(`${API_BASE_URL}/users/progress/${course._id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ progress: 0 }),
+        });
+      } catch (e) {
+        console.error("Gagal menghapus hasil quiz di server:", e);
+      }
     }
-  }
 
     setMcAnswers({});
     setEssayAnswers({});
@@ -729,7 +683,25 @@ const CoursePage = () => {
                 <div className="video-container">
                   <div className="video-wrapper">
                     <div className="video-inner">
-                      <div id="youtube-player"></div>
+                      <YouTube
+                        videoId={heroVideoId}
+                        opts={{
+                          width: "100%",
+                          height: "100%",
+                          playerVars: {
+                            autoplay: 0,
+                            controls: 0,
+                            modestbranding: 1,
+                            rel: 0,
+                            showinfo: 0,
+                            fs: 0,
+                          },
+                        }}
+                        onReady={onHeroPlayerReady}
+                        onStateChange={onHeroPlayerStateChange}
+                        className="hero-youtube-wrapper"
+                        iframeClassName="hero-youtube-iframe"
+                      />
                       {Object.values(activeVideos).some(Boolean) ? (
                         /* Video di section lain sedang aktif — tombol cover dikunci */
                         <div className="video-cover">
@@ -922,7 +894,7 @@ const CoursePage = () => {
                         )}
 
                         {content.tujuan?.length > 0 && (
-                         <div className="desc-subsection">
+                          <div className="desc-subsection">
                             <h4>🎯 Tujuan Pembelajaran</h4>
                             <ul>
                               {content.tujuan.map((item, i) => (
@@ -1354,6 +1326,6 @@ const CoursePage = () => {
       <Footer />
     </div>
   );
-};
+};;
 
 export default CoursePage;
